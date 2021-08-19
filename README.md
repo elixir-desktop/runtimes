@@ -1,4 +1,11 @@
-# PLAN
+# liberlang
+
+Currently has two build modes:
+
+1) Build on your native platform for testing / debugging
+2) Build for android using docker
+
+# How we create liberlang.so from the otp git source 
 
 Current plan to create liberlang:
 
