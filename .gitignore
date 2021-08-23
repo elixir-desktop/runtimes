@@ -1,1 +1,5 @@
 /otp
+/armeabi-v7a
+/erl_crash.dump
+*.so
+/test_main

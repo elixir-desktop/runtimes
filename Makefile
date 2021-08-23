@@ -3,11 +3,14 @@ CXXFLAGS=-Os -fPIC
 CXX=ccache gcc
 CC=ccache gcc
 
+EXCLUDE=--exclude "*/examples/*" --exclude "*.beam" --exclude "*.h" --exclude "*.erl" --exclude "*.c" --exclude "*.a" --exclude "*.hrl"
+
+
 armeabi-v7a/liberlang.so:
 	docker build -t liberlang .
-	mkdir armeabi-v7a
-	docker run --rm --entrypoint tar liberlang c -C /work/otp/bin/arm-unknown-linux-androideabi/ . | tar x -C armeabi-v7a/
-	mv liberlang.tmp armeabi-v7a/liberlang.so
+	mkdir -p armeabi-v7a
+	docker run --rm --entrypoint tar liberlang c $(EXCLUDE) -C /work/otp/release/arm-unknown-linux-androideabi/ . | tar x -C armeabi-v7a/
+	# mv armeabi-v7a/beam.smp armeabi-v7a/liberlang.so
 
 otp:
 	git clone --depth 1 -b diode/beta https://github.com/diodechain/otp.git
