@@ -9,8 +9,10 @@ EXCLUDE=--exclude "*/examples/*" --exclude "*.beam" --exclude "*.h" --exclude "*
 armeabi-v7a/liberlang.so:
 	docker build -t liberlang .
 	mkdir -p armeabi-v7a
-	docker run --rm --entrypoint tar liberlang c $(EXCLUDE) -C /work/otp/release/arm-unknown-linux-androideabi/ . | tar x -C armeabi-v7a/
-	# mv armeabi-v7a/beam.smp armeabi-v7a/liberlang.so
+	docker run --rm --entrypoint tar liberlang c -C ./release/arm-unknown-linux-androideabi/erts-12.0/bin . | tar x -C armeabi-v7a
+	docker run --rm --entrypoint find liberlang ./release/arm-unknown-linux-androideabi/ -name "*.so" -exec tar c "{}" + | tar x -C armeabi-v7a
+	mv armeabi-v7a/beam.smp armeabi-v7a/liberlang.so
+	# docker run --rm --entrypoint tar liberlang c $(EXCLUDE) -C /work/otp/release/arm-unknown-linux-androideabi/ . > armeabi-v7a/otp.tar
 
 otp:
 	git clone --depth 1 -b diode/beta https://github.com/diodechain/otp.git
