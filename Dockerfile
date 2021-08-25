@@ -22,10 +22,9 @@ RUN ./otp_build autoconf
 # dbg_wx_filedialog_win.erl:22: behaviour wx_object undefined
 
 # Build run #1, building the x86 based cross compiler which will generate the .beam files
-RUN ./otp_build configure --enable-static-nifs=yes --with-ssl=/usr/local/openssl/ --without-javac --without-odbc --without-wx --without-debugger --without-observer --without-cdv --without-et --xcomp-conf=xcomp/erl-xcomp-arm-android.conf
+RUN ./otp_build configure --with-ssl=/usr/local/openssl/ --without-javac --without-odbc --without-wx --without-debugger --without-observer --without-cdv --without-et --xcomp-conf=xcomp/erl-xcomp-arm-android.conf
 RUN ./otp_build boot -a
 
 # Build run #2, now creating the arm binaries, appliying the install flags only here...
-ENV INSTALL_PROGRAM "/usr/bin/install -c -s --strip-program=arm-linux-androideabi-strip"
-RUN ./otp_build configure --enable-static-nifs=yes --with-ssl=/usr/local/openssl/ --without-javac --without-odbc --without-wx --without-debugger --without-observer --without-cdv --without-et --xcomp-conf=xcomp/erl-xcomp-arm-android.conf
+RUN ./otp_build configure --with-ssl=/usr/local/openssl/ --without-javac --without-odbc --without-wx --without-debugger --without-observer --without-cdv --without-et --xcomp-conf=xcomp/erl-xcomp-arm-android.conf
 RUN ./otp_build release -a
