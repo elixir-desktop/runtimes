@@ -11,6 +11,8 @@ armeabi-v7a/liberlang.so:
 	mkdir -p armeabi-v7a
 	docker run --rm --entrypoint tar liberlang c -C ./release/arm-unknown-linux-androideabi/erts-12.0/bin . | tar x -C armeabi-v7a
 	docker run --rm --entrypoint find liberlang ./release/arm-unknown-linux-androideabi/ -name "*.so" -exec tar c "{}" + | tar x -C armeabi-v7a
+	# OpenSSL is now statically linked
+	# docker run --rm --entrypoint find liberlang /usr/local/openssl/ -name "*.so*" -exec tar c "{}" + | tar x -C armeabi-v7a
 	mv armeabi-v7a/beam.smp armeabi-v7a/liberlang.so
 	# docker run --rm --entrypoint tar liberlang c $(EXCLUDE) -C /work/otp/release/arm-unknown-linux-androideabi/ . > armeabi-v7a/otp.tar
 
