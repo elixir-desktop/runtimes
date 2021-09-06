@@ -3,18 +3,15 @@ FROM dockcross/android-arm
 # ENV
 ENV NDK_ROOT $CROSS_ROOT
 ENV ANDROID_NDK_HOME $CROSS_ROOT
-# ENV NDK_ABI_PLAT androideabi$ANDROID_NDK_API
 ENV NDK_ABI_PLAT androideabi21
 ENV PATH $NDK_ROOT/bin:$PATH
 ENV FC= CPP= LD= CC=clang AR=ar
-
-# CC=/usr/arm-linux-androideabi/bin/arm-linux-androideabi-clang
 
 # Setting up openssl
 COPY install_openssl.sh /work/  
 RUN ARCH="android-arm -D__ANDROID_API__=21" ./install_openssl.sh
 
-# RUN git clone --depth 1 -b diode/beta https://github.com/diodechain/otp.git
+# Fetching OTP
 RUN git clone --depth 1 -b diode/beta https://github.com/diodechain/otp.git
 
 # We need -z global for liberlang.so because:

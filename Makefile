@@ -5,16 +5,24 @@ CC=ccache gcc
 
 EXCLUDE=--exclude "*/examples/*" --exclude "*.beam" --exclude "*.h" --exclude "*.erl" --exclude "*.c" --exclude "*.a" --exclude "*.hrl"
 
+ANDROID_ARM=armeabi-v7a
+ANDROID_ARM64=arm64-v8a
 
-armeabi-v7a/liberlang.so:
-	docker build -t liberlang .
-	mkdir -p armeabi-v7a
-	docker run --rm --entrypoint tar liberlang c -C ./release/arm-unknown-linux-androideabi/erts-12.0/bin . | tar x -C armeabi-v7a
-	docker run --rm --entrypoint find liberlang ./release/arm-unknown-linux-androideabi/ -name "*.so" -exec tar c "{}" + | tar x -C armeabi-v7a
-	# OpenSSL is now statically linked
-	# docker run --rm --entrypoint find liberlang /usr/local/openssl/ -name "*.so*" -exec tar c "{}" + | tar x -C armeabi-v7a
-	mv armeabi-v7a/beam.smp armeabi-v7a/liberlang.so
-	# docker run --rm --entrypoint tar liberlang c $(EXCLUDE) -C /work/otp/release/arm-unknown-linux-androideabi/ . > armeabi-v7a/otp.tar
+all: ${ANDROID_ARM}/liberlang.so ${ANDROID_ARM64}/liberlang.so
+
+${ANDROID_ARM}/liberlang.so:
+	docker build -t liberlang -f xcomp/android-arm.dockerfile .
+	mkdir -p ${ANDROID_ARM}
+	docker run --rm --entrypoint tar liberlang c -C ./release/arm-unknown-linux-androideabi/erts-12.0/bin . | tar x -C ${ANDROID_ARM}
+	docker run --rm --entrypoint find liberlang ./release/arm-unknown-linux-androideabi/ -name "*.so" -exec tar c "{}" + | tar x -C ${ANDROID_ARM}
+	mv ${ANDROID_ARM}/beam.smp ${ANDROID_ARM}/liberlang.so
+
+${ANDROID_ARM64}/liberlang.so:
+	docker build -t liberlang64 -f xcomp/android-arm64.dockerfile .
+	mkdir -p ${ANDROID_ARM64}
+	docker run --rm --entrypoint tar liberlang64 c -C ./release/aarch64-unknown-linux-android/erts-12.0/bin . | tar x -C ${ANDROID_ARM64}
+	docker run --rm --entrypoint find liberlang64 ./release/aarch64-unknown-linux-android/ -name "*.so" -exec tar c "{}" + | tar x -C ${ANDROID_ARM64}
+	mv ${ANDROID_ARM64}/beam.smp ${ANDROID_ARM64}/liberlang64.so
 
 otp:
 	git clone --depth 1 -b diode/beta https://github.com/diodechain/otp.git

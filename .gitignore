@@ -1,4 +1,5 @@
 /otp
+/arm64-v8a
 /armeabi-v7a
 /erl_crash.dump
 *.so
