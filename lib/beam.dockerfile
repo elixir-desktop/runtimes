@@ -1,31 +1,27 @@
-FROM dockcross/android-<%= @arch %>
+FROM dockcross/android-<%= @arch.id %>
 
 # ENV
 ENV NDK_ROOT $CROSS_ROOT
 ENV ANDROID_NDK_HOME $CROSS_ROOT
-<%= if @arch == "arm" do %>
-ENV NDK_ABI_PLAT androideabi<%= @abi %>
-<% else %>
-ENV NDK_ABI_PLAT android<%= @abi %>
-<% end %>
+ENV NDK_ABI_PLAT <%= @arch.android_name %><%= @arch.abi %>
 ENV PATH $NDK_ROOT/bin:$PATH
 ENV FC= CPP= LD= CC=clang AR=ar
 
 # Setting up openssl
 COPY install_openssl.sh /work/  
 
-<%= if @arch != "arm" do %>
+<%= if @arch.id != "arm" do %>
 # OpenSSL fails to detect this: 
-RUN cp ${NDK_ROOT}/bin/llvm-ar ${NDK_ROOT}/bin/<%= @cpu %>-linux-android-ar
-RUN cp ${NDK_ROOT}/bin/llvm-ranlib ${NDK_ROOT}/bin/<%= @cpu %>-linux-android-ranlib
+RUN cp ${NDK_ROOT}/bin/llvm-ar ${NDK_ROOT}/bin/<%= @arch.cpu %>-linux-android-ar
+RUN cp ${NDK_ROOT}/bin/llvm-ranlib ${NDK_ROOT}/bin/<%= @arch.cpu %>-linux-android-ranlib
 <% end %>
 
-RUN ARCH="android-<%= @arch %> -D__ANDROID_API__=<%= @abi %>" ./install_openssl.sh
+RUN ARCH="android-<%= @arch.id %> -D__ANDROID_API__=<%= @arch.abi %>" ./install_openssl.sh
 
 # Fetching OTP
 RUN git clone --depth 1 -b diode/beta https://github.com/diodechain/otp.git
 
-<%= if @arch == "arm" do %>
+<%= if @arch.id == "arm" do %>
 ENV LIBS -L$NDK_ROOT/lib64/clang/11.0.5/lib/linux/ /usr/local/openssl/lib/libcrypto.a -lclang_rt.builtins-arm-android
 <% else %>
 ENV LIBS /usr/local/openssl/lib/libcrypto.a
@@ -44,8 +40,8 @@ RUN ./otp_build autoconf
 
 # Build run #1, building the x86 based cross compiler which will generate the .beam files
 <% 
-config = "--with-ssl=/usr/local/openssl/ --disable-dynamic-ssl-lib --without-javac --without-odbc --without-wx --without-debugger --without-observer --without-cdv --without-et --xcomp-conf=xcomp/erl-xcomp-#{@arch}-android.conf"
-config = if @arch == "x86_64", do: "--disable-jit #{config}", else: config
+config = "--with-ssl=/usr/local/openssl/ --disable-dynamic-ssl-lib --without-javac --without-odbc --without-wx --without-debugger --without-observer --without-cdv --without-et --xcomp-conf=xcomp/erl-xcomp-#{@arch.id}-android.conf"
+config = if @arch.id == "x86_64", do: "--disable-jit #{config}", else: config
 %>
 RUN ./otp_build configure <%= config %>
 RUN ./otp_build boot -a
