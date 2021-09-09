@@ -24,16 +24,15 @@ defmodule Mix.Tasks.Package.Runtime do
       Runtime.docker_build(image_name, file)
       File.mkdir_p!("_build/#{arch.id}")
 
-      Runtime.run(
-        ~w(docker run --rm -w /work/otp/release/#{arch.pc}-linux-#{arch.android_name}/ --entrypoint find #{
-          image_name
-        } . \( -name "*.so" -or -path "*erts-*/bin/*" \) -exec tar c "{}" + | tar x -C _build/#{
-          arch.id
-        }")
-      )
+      Runtime.run(~w(docker run --rm -w
+        /work/otp/release/#{arch.pc}-linux-#{arch.android_name}/
+        --entrypoint find #{image_name} .
+        \\\( -name "*.so" -or -path "*erts-*/bin/*" \\\)
+        -exec tar c "{}" + |
+        tar x -C _build/#{arch.id}))
 
-      Runtime.run(~w(find _build/#{arch.id} -name beam.smp -execdir mv beam.smp liberlang.so \;))
-      Runtime.run(~w(cd _build/#{arch.id}; zip ../../#{arch.id}-runtime -r .))
+      Runtime.run(~w(find _build/#{arch.id} -name beam.smp -execdir mv beam.smp liberlang.so \\\;))
+      Runtime.run(~w(cd _build/#{arch.id}; zip ../../#{file_name} -r .))
     end
   end
 

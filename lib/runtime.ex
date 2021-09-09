@@ -57,10 +57,11 @@ defmodule Runtime do
   EEx.function_from_file(:defp, :beam_dockerfile, "#{__DIR__}/beam.dockerfile", [:assigns])
 
   def run(args) do
+    args = if is_list(args), do: Enum.join(args, " "), else: args
     IO.puts("RUN: #{args}")
 
     {_, 0} =
-      System.cmd("bash", ["-c" | args],
+      System.cmd("bash", ["-c", args],
         stderr_to_stdout: true,
         into: IO.binstream(:stdio, :line)
       )
