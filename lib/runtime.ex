@@ -5,7 +5,7 @@ defmodule Runtime do
     %{
       "arm" => %{
         id: "arm",
-        abi: 21,
+        abi: 23,
         cpu: "arm",
         pc: "arm-unknown",
         android_name: "androideabi",

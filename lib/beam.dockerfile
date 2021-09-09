@@ -10,11 +10,9 @@ ENV FC= CPP= LD= CC=clang AR=ar
 # Setting up openssl
 COPY install_openssl.sh /work/  
 
-<%= if @arch.id != "arm" do %>
 # OpenSSL fails to detect this: 
-RUN cp ${NDK_ROOT}/bin/llvm-ar ${NDK_ROOT}/bin/<%= @arch.cpu %>-linux-android-ar
-RUN cp ${NDK_ROOT}/bin/llvm-ranlib ${NDK_ROOT}/bin/<%= @arch.cpu %>-linux-android-ranlib
-<% end %>
+RUN cp ${NDK_ROOT}/bin/llvm-ar ${NDK_ROOT}/bin/<%= @arch.cpu %>-linux-<%= @arch.android_name %>-ar
+RUN cp ${NDK_ROOT}/bin/llvm-ranlib ${NDK_ROOT}/bin/<%= @arch.cpu %>-linux-<%= @arch.android_name %>-ranlib
 
 RUN ARCH="android-<%= @arch.id %> -D__ANDROID_API__=<%= @arch.abi %>" ./install_openssl.sh
 
@@ -22,7 +20,7 @@ RUN ARCH="android-<%= @arch.id %> -D__ANDROID_API__=<%= @arch.abi %>" ./install_
 RUN git clone --depth 1 -b diode/beta https://github.com/diodechain/otp.git
 
 <%= if @arch.id == "arm" do %>
-ENV LIBS -L$NDK_ROOT/lib64/clang/11.0.5/lib/linux/ /usr/local/openssl/lib/libcrypto.a -lclang_rt.builtins-arm-android
+ENV LIBS -L$NDK_ROOT/lib64/clang/12.0.5/lib/linux/ /usr/local/openssl/lib/libcrypto.a -lclang_rt.builtins-arm-android
 <% else %>
 ENV LIBS /usr/local/openssl/lib/libcrypto.a
 <% end %>

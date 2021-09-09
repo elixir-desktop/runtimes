@@ -2,6 +2,10 @@ defmodule Mix.Tasks.Package.Nif do
   use Mix.Task
   require EEx
 
+  def run([]) do
+
+  end
+
   def run(args) do
     {git, tag, tool} =
       case args do
