@@ -1,6 +1,6 @@
 /otp
-/arm64-v8a
-/armeabi-v7a
+/_build
 /erl_crash.dump
 *.so
+*.zip
 /test_main

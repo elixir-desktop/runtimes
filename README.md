@@ -1,9 +1,19 @@
 # liberlang
 
-Currently has two build modes:
+To use elixir-desktop on mobile-phones this projects packages the BEAM Virtual Machine into platform specific binaries. Currently supported are:
 
-1) Build on your native platform for testing / debugging
-2) Build for android using docker
+- Android arm 64-bit
+- Android arm 32-bit
+- Android x86 64-bit (for the Android Simulator)
+- Linux   x86 64-bit (only for testing)
+
+# Building
+
+liberlang depends on docker and the dockercross/* docker-images created for cross-compilation. If docker is installed for your
+current user then building all the runtimes bundled in a zip file is as easy as:
+
+`make`
+
 
 # Android Versions and API-Levels (update Sept. 7th 2021)
 
