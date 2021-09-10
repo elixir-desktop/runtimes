@@ -11,15 +11,17 @@ RUN apt install -y erlang
 WORKDIR /work
 RUN mix local.hex --force && mix local.rebar
 
+ENV ERLANG_PATH /work/otp/release/<%= @arch.pc %>-linux-<%= @arch.android_name %>/erts-12.0/include
+ENV ERTS_INCLUDE_DIR /work/otp/release/<%= @arch.pc %>-linux-<%= @arch.android_name %>/erts-12.0/include
+ENV HOST <%= @arch.cpu %>
+
 RUN git clone <%= @repo %>
 WORKDIR /work/<%= @basename %>
 <%= if @tag do %> 
 RUN git checkout @tag
 <% end %>
 
-<%= if @tool == :mix do %>
+# Three variants of building {:mix, :make, :rebar3}
 ENV MIX_ENV prod
-RUN mix deps.get && mix release
-<% else %>
-RUN /root/.mix/rebar3 compile
-<% end %>
+COPY build_nif.sh package_nif.sh /work/<%= @basename %>/
+RUN ./build_nif.sh

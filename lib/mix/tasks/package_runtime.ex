@@ -31,7 +31,10 @@ defmodule Mix.Tasks.Package.Runtime do
         -exec tar c "{}" + |
         tar x -C _build/#{arch.id}))
 
-      Runtime.run(~w(find _build/#{arch.id} -name beam.smp -execdir mv beam.smp liberlang.so \\\;))
+      Runtime.run(
+        ~w(find _build/#{arch.id} -name beam.smp -execdir mv beam.smp liberlang.so \\\;)
+      )
+
       Runtime.run(~w(cd _build/#{arch.id}; zip ../../#{file_name} -r .))
     end
   end

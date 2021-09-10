@@ -39,12 +39,12 @@ defmodule Runtime do
     {beam_dockerfile(args), args}
   end
 
-  def generate_nif_dockerfile(arch, git, tag, tool) do
+  def generate_nif_dockerfile(arch, git, tag) do
     {parent, args} = generate_beam_dockerfile(arch)
 
     args =
       args ++
-        [parent: parent, repo: git, tag: tag, basename: Path.basename(git, ".git"), tool: tool]
+        [parent: parent, repo: git, tag: tag, basename: Path.basename(git, ".git")]
 
     content = nif_dockerfile(args)
 
@@ -86,10 +86,10 @@ defmodule Runtime do
 
   def default_nifs() do
     [
-      {:rebar3, "https://github.com/mmzeeman/esqlite.git"},
-      {:mix, "https://github.com/elixir-sqlite/exqlite.git"},
-      {:rebar3, "https://github.com/diodechain/erlang-keccakf1600.git", :keccakf1600},
-      {:rebar3, "https://github.com/diodechain/libsecp256k1.git"}
+      "https://github.com/mmzeeman/esqlite.git",
+      "https://github.com/elixir-sqlite/exqlite.git",
+      {"https://github.com/diodechain/erlang-keccakf1600.git", "keccakf1600"},
+      "https://github.com/diodechain/libsecp256k1.git"
     ]
   end
 end

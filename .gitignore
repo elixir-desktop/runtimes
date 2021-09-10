@@ -3,4 +3,5 @@
 /erl_crash.dump
 *.so
 *.zip
+*.tmp
 /test_main

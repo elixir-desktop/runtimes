@@ -6,6 +6,7 @@ ENV ANDROID_NDK_HOME $CROSS_ROOT
 ENV NDK_ABI_PLAT <%= @arch.android_name %><%= @arch.abi %>
 ENV PATH $NDK_ROOT/bin:$PATH
 ENV FC= CPP= LD= CC=clang AR=ar
+ENV MAKEFLAGS "-j10 -O"
 
 # Setting up openssl
 COPY install_openssl.sh /work/  
