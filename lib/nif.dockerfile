@@ -24,5 +24,5 @@ RUN git checkout @tag
 
 # Three variants of building {:mix, :make, :rebar3}
 ENV MIX_ENV prod
-COPY build_nif.sh package_nif.sh /work/<%= @basename %>/
+COPY scripts/build_nif.sh scripts/package_nif.sh /work/<%= @basename %>/
 RUN ./build_nif.sh

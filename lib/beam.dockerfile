@@ -9,7 +9,7 @@ ENV FC= CPP= LD= CC=clang AR=ar
 ENV MAKEFLAGS "-j10 -O"
 
 # Setting up openssl
-COPY install_openssl.sh /work/  
+COPY scripts/install_openssl.sh /work/  
 
 # OpenSSL fails to detect this: 
 RUN cp ${NDK_ROOT}/bin/llvm-ar ${NDK_ROOT}/bin/<%= @arch.cpu %>-linux-<%= @arch.android_name %>-ar
