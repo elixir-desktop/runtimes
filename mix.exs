@@ -1,9 +1,9 @@
-defmodule Liberlang.MixProject do
+defmodule Runtimes.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :liberlang,
+      app: :runtimes,
       version: "0.1.0",
       elixir: "~> 1.11",
       start_permanent: Mix.env() == :prod,

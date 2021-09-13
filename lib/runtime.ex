@@ -1,4 +1,4 @@
-defmodule Runtime do
+defmodule Runtimes do
   require EEx
 
   def architectures() do

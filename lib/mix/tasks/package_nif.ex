@@ -3,14 +3,14 @@ defmodule Mix.Tasks.Package.Nif do
   require EEx
 
   def run([]) do
-    Enum.each(Runtime.default_nifs(), fn nif ->
+    Enum.each(Runtimes.default_nifs(), fn nif ->
       {basename, git} =
         case nif do
           git when is_binary(git) -> {basename(git), git}
           {git, basename} -> {basename, git}
         end
 
-      Enum.each(Runtime.default_archs(), fn arch ->
+      Enum.each(Runtimes.default_archs(), fn arch ->
         build(arch, git, basename)
       end)
     end)
@@ -28,19 +28,20 @@ defmodule Mix.Tasks.Package.Nif do
   end
 
   defp build(arch, git, basename, tag \\ nil) do
-    target = "_build/#{arch}-nif-#{basename}.zip"
+    type = Runtimes.get_arch(arch).android_type
+    target = "_build/#{type}-nif-#{basename}.zip"
 
     if exists?(target) do
       :ok
     else
       image_name = "#{basename}-#{arch}"
 
-      Runtime.docker_build(
+      Runtimes.docker_build(
         image_name,
-        Runtime.generate_nif_dockerfile(arch, git, tag)
+        Runtimes.generate_nif_dockerfile(arch, git, tag)
       )
 
-      Runtime.run(~w(docker run --rm
+      Runtimes.run(~w(docker run --rm
     -w /work/#{basename(git)}/ --entrypoint ./package_nif.sh #{image_name}
     #{basename} > #{target}))
     end

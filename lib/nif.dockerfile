@@ -14,8 +14,9 @@ RUN mix local.hex --force && mix local.rebar
 ENV ERLANG_PATH /work/otp/release/<%= @arch.pc %>-linux-<%= @arch.android_name %>/erts-12.0/include
 ENV ERTS_INCLUDE_DIR /work/otp/release/<%= @arch.pc %>-linux-<%= @arch.android_name %>/erts-12.0/include
 ENV HOST <%= @arch.cpu %>
+ENV CROSSCOMPILE Android
 
-RUN git clone <%= @repo %>
+RUN git clone     <%= @repo %>
 WORKDIR /work/<%= @basename %>
 <%= if @tag do %> 
 RUN git checkout @tag

@@ -1,21 +1,28 @@
-# liberlang
+# Elixir-Desktop Runtimes
 
 To use elixir-desktop on mobile-phones this projects packages the BEAM Virtual Machine into platform specific binaries. Currently supported are:
 
 - Android arm 64-bit
 - Android arm 32-bit
 - Android x86 64-bit (for the Android Simulator)
-- Linux   x86 64-bit (only for testing)
 
-# Building
+## Known Issues
 
-liberlang depends on docker and the dockercross/* docker-images created for cross-compilation. If docker is installed for your
+- The android simulator runtime x86_64 does not work. The binaries in `/erts-12.0/bin/` such as `erl_child_setup` are missing the `main()` functions and cannot be invoked. Haven't found out why yet.
+
+## Building
+
+Runtimes depends on docker and the dockercross/* docker-images created for cross-compilation. If docker is installed for your
 current user then building all the runtimes bundled in a zip file is as easy as:
 
-`make`
+`mix package.runtime`
+
+After this you should have all runtimes in `_build/#{arch}-Runtimes.zip` these then will need to be packaged with your mobile app. 
 
 
-# Android Versions and API-Levels (update Sept. 7th 2021)
+## Android Versions and API-Levels (update Sept. 7th 2021)
+
+Just for reference, currently we're only supporting ABI >= 23  
 
 | Market Share | Sum | Version | API Level |
 | ------------ | --- | ------- | --------- |
@@ -29,22 +36,3 @@ current user then building all the runtimes bundled in a zip file is as easy as:
 |  4.03% | 95.49% | Android 6.0         | (API level 23) |
 
 
-# How we create liberlang.so from the otp git source 
-
-Current plan to create liberlang:
-
-1) Replace erl_main.c in sys/unix/
-
-2) Export some symbols either
-    * Find DEXPORT or similiar to export from beam.smp
-    * or add -shared flags somehow and create beam.smp.so
-
-
-Current: 
-- ENV CFLAGS="-O2 -fPIC" CXXFLAGS="-O2 -fPIC"
-- Deleted main() from  erl_main.c in sys/unix/
-- Replace $(ERLLD) with '$(CXX) -shared'
-=> Can't use beam.smp for compilation anymore...
-
-Approach:
-- ENV CFLAGS="-O2 -fPIC" CXXFLAGS="-O2 -fPIC"
