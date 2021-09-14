@@ -81,7 +81,10 @@ defmodule Runtimes do
   end
 
   def default_archs() do
-    ["arm", "arm64", "x86_64"]
+    case System.get_env("ARCH", nil) do
+      nil -> ["arm", "arm64", "x86_64"]
+      arch -> [arch]
+    end
   end
 
   def default_nifs() do

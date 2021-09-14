@@ -7,7 +7,7 @@ defmodule Mix.Tasks.Package.Runtime do
   end
 
   defp target(arch) do
-    "_build/#{arch.android_type}-Runtimes.zip"
+    "_build/#{arch.android_type}-runtime.zip"
   end
 
   def build(arch) do

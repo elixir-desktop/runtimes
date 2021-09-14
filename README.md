@@ -17,7 +17,7 @@ current user then building all the runtimes bundled in a zip file is as easy as:
 
 `mix package.runtime`
 
-After this you should have all runtimes in `_build/#{arch}-Runtimes.zip` these then will need to be packaged with your mobile app. 
+After this you should have all runtimes in `_build/#{arch}-runtime.zip` these then will need to be packaged with your mobile app. 
 
 
 ## Android Versions and API-Levels (update Sept. 7th 2021)
