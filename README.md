@@ -6,10 +6,6 @@ To use elixir-desktop on mobile-phones this projects packages the BEAM Virtual M
 - Android arm 32-bit
 - Android x86 64-bit (for the Android Simulator)
 
-## Known Issues
-
-- The android simulator runtime x86_64 does not work. The binaries in `/erts-12.0/bin/` such as `erl_child_setup` are missing the `main()` functions and cannot be invoked. Haven't found out why yet.
-
 ## Building
 
 Runtimes depends on docker and the dockercross/* docker-images created for cross-compilation. If docker is installed for your
