@@ -56,15 +56,27 @@ defmodule Runtimes do
   EEx.function_from_file(:defp, :nif_dockerfile, "#{__DIR__}/nif.dockerfile", [:assigns])
   EEx.function_from_file(:defp, :beam_dockerfile, "#{__DIR__}/beam.dockerfile", [:assigns])
 
-  def run(args) do
+  def run(args, env \\ []) do
     args = if is_list(args), do: Enum.join(args, " "), else: args
+
+    env =
+      Enum.map(env, fn {key, value} ->
+        case key do
+          atom when is_atom(atom) -> {Atom.to_string(atom), value}
+          _other -> {key, value}
+        end
+      end)
+
     IO.puts("RUN: #{args}")
 
-    {_, 0} =
+    {ret, 0} =
       System.cmd("bash", ["-c", args],
         stderr_to_stdout: true,
-        into: IO.binstream(:stdio, :line)
+        into: IO.binstream(:stdio, :line),
+        env: env
       )
+
+    ret
   end
 
   def docker_build(image, file) do
