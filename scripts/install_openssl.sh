@@ -15,7 +15,7 @@ mkdir -p $PREFIX/ssl && \
     [ "$VSN_HASH" = "$(sha256sum openssl-$VSN.tar.gz | cut -d ' ' -f1)" ] && \
     tar xzf openssl-$VSN.tar.gz && \
     cd openssl-$VSN && \
-    make clean && \
+    sed -i '' 's/"engine"/"shared"/' Configurations/15-ios.conf && \
     ./Configure $ARCH --prefix=$PREFIX "$@" && \
-    make depend && make && make install_sw install_ssldirs
+    make clean && make depend && make && make install_sw install_ssldirs
 
