@@ -39,16 +39,16 @@ defmodule Runtimes do
     {beam_dockerfile(args), args}
   end
 
-  def generate_nif_dockerfile(arch, git, tag) do
+  def generate_nif_dockerfile(arch, nif) do
     {parent, args} = generate_beam_dockerfile(arch)
 
     args =
       args ++
-        [parent: parent, repo: git, tag: tag, basename: Path.basename(git, ".git")]
+        [parent: parent, repo: nif.repo, tag: nif.tag, basename: nif.basename]
 
     content = nif_dockerfile(args)
 
-    file = "#{Path.basename(git, ".git")}-#{arch}.dockerfile.tmp"
+    file = "#{nif.basename}-#{arch}.dockerfile.tmp"
     File.write!(file, content)
     file
   end
@@ -106,5 +106,19 @@ defmodule Runtimes do
       {"https://github.com/diodechain/erlang-keccakf1600.git", "keccakf1600"},
       "https://github.com/diodechain/libsecp256k1.git"
     ]
+  end
+
+  def get_nif(url) when is_binary(url) do
+    name = Path.basename(url, ".git")
+    get_nif({url, name})
+  end
+
+  def get_nif({url, name}) do
+    %{
+      tag: nil,
+      repo: url,
+      name: name,
+      basename: Path.basename(url, ".git")
+    }
   end
 end

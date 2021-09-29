@@ -2,7 +2,7 @@
 
 # mix has priority over `make` for projects like exqlite
 if [ -f "mix.exs" ]; then
-    exec mix do deps.get, release
+    exec mix do deps.get, release --overwrite
 fi
 
 if [ -f "Makefile" ]; then

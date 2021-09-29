@@ -3,5 +3,8 @@
 /erl_crash.dump
 *.so
 *.zip
+*.tar.gz
 *.tmp
+.DS_Store
+/tmp
 /test_main
