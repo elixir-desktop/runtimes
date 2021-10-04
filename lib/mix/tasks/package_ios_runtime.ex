@@ -193,10 +193,12 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
         "-library #{runtime_target(arch)}"
       end)
 
-      framework = "./_build/liberlang.xcframework"
-      if File.exists?(framework) do
-        File.rm_rf!(framework)
-      end
+    framework = "./_build/liberlang.xcframework"
+
+    if File.exists?(framework) do
+      File.rm_rf!(framework)
+    end
+
     Runtimes.run(
       "xcodebuild -create-xcframework -output #{framework} " <>
         Enum.join(libs, " ")

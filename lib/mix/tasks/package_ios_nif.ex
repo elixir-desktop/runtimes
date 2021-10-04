@@ -83,6 +83,7 @@ defmodule Mix.Tasks.Package.Ios.Nif do
 
   def static_lib_path(arch, nif) do
     nif_dir = "_build/#{arch.name}/#{nif.basename}"
+
     :filelib.fold_files(
       String.to_charlist(nif_dir),
       '.+\\.a$',
