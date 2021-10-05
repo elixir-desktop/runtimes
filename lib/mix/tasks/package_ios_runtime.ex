@@ -1,4 +1,7 @@
 defmodule Mix.Tasks.Package.Ios.Runtime do
+  @otp_source "https://github.com/diodechain/top"
+  @otp_tag "diode/ios"
+
   alias Mix.Tasks.Package.Ios.Nif
   use Mix.Task
   require EEx
@@ -49,8 +52,14 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
     Map.fetch!(architectures(), arch)
   end
 
-  def run(_) do
+  def run([]) do
     buildall(Map.keys(architectures()), ["https://github.com/elixir-desktop/exqlite.git"])
+  end
+
+  def run(nifs) do
+    IO.puts("Validating nifs...")
+    Enum.each(nifs, fn nif -> Runtimes.get_nif(nif) end)
+    buildall(Map.keys(architectures()), nifs)
   end
 
   def openssl_target(arch) do
@@ -88,7 +97,15 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
       IO.puts("liberlang.a (#{arch.id}) already exists...")
     else
       if !File.exists?(otp_target(arch)) do
-        Runtimes.run(~w(git clone otp #{otp_target(arch)}))
+        if !File.exists?("_build/otp") do
+          File.mkdir_p!("_build")
+
+          Runtimes.run(
+            "git clone #{@otp_source} _build/otp && cd _build/otp && git checkout #{@otp_tag}"
+          )
+        end
+
+        Runtimes.run(~w(git clone _build/otp #{otp_target(arch)}))
       end
 
       env = [
@@ -96,7 +113,6 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
         INSTALL_PROGRAM: "/usr/bin/install -c",
         MAKEFLAGS: "-j10 -O",
         RELEASE_LIBBEAM: "yes"
-        # ONLY_ACTIVE_ARCH: "yes"
       ]
 
       nifs = [

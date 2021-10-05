@@ -24,6 +24,7 @@ defmodule Mix.Tasks.Package.Ios.Nif do
     path =
       [
         Path.join(elixir_target(), "bin"),
+        Path.join(System.get_env("HOME"), ".mix"),
         # Path.join(otp_target(arch), "bootstrap/bin"),
         System.get_env("PATH")
       ]
