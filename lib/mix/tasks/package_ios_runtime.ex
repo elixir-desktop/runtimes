@@ -9,19 +9,20 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
     # "Both 'ios-armv7' and 'ios-arm64' represent two equivalent library definitions."
     # so for now it's disabled.
     # Not sure if we still need arm-32 at all https://blakespot.com/ios_device_specifications_grid.html
-
     %{
       # "ios" => %{
       #   id: "ios",
       #   sdk: "iphoneos",
       #   openssl_arch: "ios-xcrun",
       #   name: "arm-apple-ios"
+      #   ...
       # },
       "ios-arm64" => %{
         arch: "arm64",
         id: "ios64",
         sdk: "iphoneos",
         openssl_arch: "ios64-xcrun",
+        xcomp: "arm64-ios",
         name: "aarch64-apple-ios",
         cflags: "-mios-version-min=7.0.0 -fno-common -Os -D__IOS__=yes"
       },
@@ -30,6 +31,7 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
         id: "iossimulator",
         sdk: "iphonesimulator",
         openssl_arch: "iossimulator-x86_64-xcrun",
+        xcomp: "x86_64-iossimulator",
         name: "x86_64-apple-iossimulator",
         cflags: "-mios-simulator-version-min=7.0.0 -fno-common -Os -D__IOS__=yes"
       },
@@ -38,6 +40,7 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
         id: "iossimulator",
         sdk: "iphonesimulator",
         openssl_arch: "iossimulator-x86_64-xcrun",
+        xcomp: "arm64-iossimulator",
         name: "aarch64-apple-iossimulator",
         cflags: "-mios-simulator-version-min=7.0.0 -fno-common -Os -D__IOS__=yes"
       }
@@ -118,7 +121,7 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
           ./otp_build configure
           --with-ssl=#{openssl_target(arch)}
           --disable-dynamic-ssl-lib
-          --xcomp-conf=xcomp/erl-xcomp-#{arch.openssl_arch}.conf
+          --xcomp-conf=xcomp/erl-xcomp-#{arch.xcomp}.conf
           --enable-static-nifs=#{Enum.join(nifs, ",")}
         ),
         env
