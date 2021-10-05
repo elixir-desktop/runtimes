@@ -4,15 +4,6 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
   require EEx
 
   def architectures() do
-    {arch, 0} = System.cmd("arch", [])
-
-    cpu =
-      case arch do
-        "arm64" -> "aarch64"
-        "x86_64" -> "x86_64"
-        _other -> raise "Can only build ios runtimes on a mac"
-      end
-
     # When including 32-bit arm for iOS then I'm getting this error when trying to create
     # a fat binary out of the resulting libbeam.a:
     # "Both 'ios-armv7' and 'ios-arm64' represent two equivalent library definitions."
@@ -26,7 +17,7 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
       #   openssl_arch: "ios-xcrun",
       #   name: "arm-apple-ios"
       # },
-      "ios64" => %{
+      "ios-arm64" => %{
         arch: "arm64",
         id: "ios64",
         sdk: "iphoneos",
@@ -34,12 +25,20 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
         name: "aarch64-apple-ios",
         cflags: "-mios-version-min=7.0.0 -fno-common -Os -D__IOS__=yes"
       },
-      "iossimulator" => %{
-        arch: arch,
+      "iossimulator-x86_64" => %{
+        arch: "x86_64",
         id: "iossimulator",
         sdk: "iphonesimulator",
-        openssl_arch: "iossimulator-xcrun",
-        name: "#{cpu}-apple-iossimulator",
+        openssl_arch: "iossimulator-x86_64-xcrun",
+        name: "x86_64-apple-iossimulator",
+        cflags: "-mios-simulator-version-min=7.0.0 -fno-common -Os -D__IOS__=yes"
+      },
+      "iossimulator-arm64" => %{
+        arch: "x86_64",
+        id: "iossimulator",
+        sdk: "iphonesimulator",
+        openssl_arch: "iossimulator-x86_64-xcrun",
+        name: "aarch64-apple-iossimulator",
         cflags: "-mios-simulator-version-min=7.0.0 -fno-common -Os -D__IOS__=yes"
       }
     }
