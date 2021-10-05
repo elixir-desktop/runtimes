@@ -4,19 +4,17 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
   require EEx
 
   def architectures() do
-    # When including 32-bit arm for iOS then I'm getting this error when trying to create
-    # a fat binary out of the resulting libbeam.a:
-    # "Both 'ios-armv7' and 'ios-arm64' represent two equivalent library definitions."
-    # so for now it's disabled.
     # Not sure if we still need arm-32 at all https://blakespot.com/ios_device_specifications_grid.html
     %{
-      # "ios" => %{
-      #   id: "ios",
-      #   sdk: "iphoneos",
-      #   openssl_arch: "ios-xcrun",
-      #   name: "arm-apple-ios"
-      #   ...
-      # },
+      "ios" => %{
+        arch: "armv7",
+        id: "ios",
+        sdk: "iphoneos",
+        openssl_arch: "ios-xcrun",
+        xcomp: "arm-ios",
+        name: "arm-apple-ios",
+        cflags: "-mios-version-min=7.0.0 -fno-common -Os -D__IOS__=yes"
+      },
       "ios-arm64" => %{
         arch: "arm64",
         id: "ios64",
@@ -36,10 +34,10 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
         cflags: "-mios-simulator-version-min=7.0.0 -fno-common -Os -D__IOS__=yes"
       },
       "iossimulator-arm64" => %{
-        arch: "x86_64",
+        arch: "arm64",
         id: "iossimulator",
         sdk: "iphonesimulator",
-        openssl_arch: "iossimulator-x86_64-xcrun",
+        openssl_arch: "iossimulator-arm64-xcrun",
         xcomp: "arm64-iossimulator",
         name: "aarch64-apple-iossimulator",
         cflags: "-mios-simulator-version-min=7.0.0 -fno-common -Os -D__IOS__=yes"
@@ -71,8 +69,8 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
     "_build/#{arch.name}/liberlang.a"
   end
 
-  def build(arch, nifs) do
-    arch = get_arch(arch)
+  def build(archid, extra_nifs) do
+    arch = get_arch(archid)
     File.mkdir_p!("_build/#{arch.name}")
 
     # Building OpenSSL
@@ -98,12 +96,38 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
         INSTALL_PROGRAM: "/usr/bin/install -c",
         MAKEFLAGS: "-j10 -O",
         RELEASE_LIBBEAM: "yes"
+        # ONLY_ACTIVE_ARCH: "yes"
       ]
 
+      nifs = [
+        "#{otp_target(arch)}/lib/asn1/priv/lib/#{arch.name}/asn1rt_nif.a",
+        "#{otp_target(arch)}/lib/crypto/priv/lib/#{arch.name}/crypto.a"
+      ]
+
+      # First round build to generate headers and libs required to build nifs:
+      Runtimes.run(
+        ~w(
+          cd #{otp_target(arch)} && git clean -xdf &&
+          ./otp_build autoconf &&
+          ./otp_build configure
+          --with-ssl=#{openssl_target(arch)}
+          --disable-dynamic-ssl-lib
+          --xcomp-conf=xcomp/erl-xcomp-#{arch.xcomp}.conf
+          --enable-static-nifs=#{Enum.join(nifs, ",")}
+        ),
+        env
+      )
+
+      Runtimes.run(~w(cd #{otp_target(arch)} && ./otp_build boot -a), env)
+      Runtimes.run(~w(cd #{otp_target(arch)} && ./otp_build release -a), env)
+
+      # Second round
       # The extra path can only be generated AFTER the nifs are compiled
-      # so this required two rounds...
+      # so this requires two rounds...
       extra_nifs =
-        Enum.map(nifs, fn nif ->
+        Enum.map(extra_nifs, fn nif ->
+          Nif.build(archid, nif)
+
           Nif.static_lib_path(arch, Runtimes.get_nif(nif))
           |> Path.absname()
         end)
@@ -116,9 +140,7 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
 
       Runtimes.run(
         ~w(
-          cd #{otp_target(arch)} && git clean -xdf &&
-          ./otp_build autoconf &&
-          ./otp_build configure
+          cd #{otp_target(arch)} && ./otp_build configure
           --with-ssl=#{openssl_target(arch)}
           --disable-dynamic-ssl-lib
           --xcomp-conf=xcomp/erl-xcomp-#{arch.xcomp}.conf
@@ -149,10 +171,8 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
     end
   end
 
-  @doc """
-    Method takes multiple ".a" archive files and extracts their ".o" contents
-    to then reassemble all of them into a single `target` ".a" archive
-  """
+  #  Method takes multiple ".a" archive files and extracts their ".o" contents
+  # to then reassemble all of them into a single `target` ".a" archive
   defp repackage_archive(files, target) do
     # Removing relative prefix so changing cwd is safe.
     files = Enum.map(files, fn file -> Path.absname(file) end)
@@ -189,11 +209,13 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
       build(target, nifs)
     end
 
+    {sims, reals} =
+      Enum.map(targets, fn target -> runtime_target(get_arch(target)) end)
+      |> Enum.split_with(fn lib -> String.contains?(lib, "simulator") end)
+
     libs =
-      Enum.map(targets, fn target ->
-        arch = get_arch(target)
-        "-library #{runtime_target(arch)}"
-      end)
+      (lipo(sims) ++ lipo(reals))
+      |> Enum.map(fn lib -> "-library #{lib}" end)
 
     framework = "./_build/liberlang.xcframework"
 
@@ -205,5 +227,18 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
       "xcodebuild -create-xcframework -output #{framework} " <>
         Enum.join(libs, " ")
     )
+  end
+
+  # lipo joins different cpu build of the same target together
+  defp lipo([]), do: []
+  defp lipo([one]), do: [one]
+
+  defp lipo(more) do
+    File.mkdir_p!("tmp")
+    x = System.unique_integer([:positive])
+    tmp = "tmp/#{x}-liberlang.a"
+    if File.exists?(tmp), do: File.rm!(tmp)
+    Runtimes.run("lipo -create #{Enum.join(more, " ")} -output #{tmp}")
+    [tmp]
   end
 end

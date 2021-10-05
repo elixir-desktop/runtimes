@@ -40,7 +40,7 @@ defmodule Mix.Tasks.Package.Ios.Nif do
         unzip Precompiled.zip
         ))
 
-      Runtimes.run("mix do local.hex --force && mix local.rebar", PATH: path)
+      Runtimes.run("mix do local.hex --force && mix local.rebar --force", PATH: path)
     end
 
     {sdkroot, 0} = System.cmd("xcrun", ["-sdk", arch.sdk, "--show-sdk-path"])
