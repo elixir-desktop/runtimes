@@ -58,7 +58,7 @@ defmodule Mix.Tasks.Package.Ios.Nif do
       CXX: "xcrun -sdk #{arch.sdk} c++ -arch #{arch.arch}",
       CXXFLAGS: arch.cflags,
       LD: "xcrun -sdk #{arch.sdk} ld -arch #{arch.arch}",
-      LDFLAGS: "-L#{sdkroot}/usr/lib/ -lc++ -v",
+      LDFLAGS: "-L#{String.trim(sdkroot)}/usr/lib/ -lc++",
       RANLIB: "xcrun -sdk #{arch.sdk} ranlib",
       AR: "xcrun -sdk #{arch.sdk} ar",
       MIX_ENV: "prod",
@@ -79,7 +79,10 @@ defmodule Mix.Tasks.Package.Ios.Nif do
     build_nif = Path.absname("scripts/build_nif.sh")
     Runtimes.run(~w(cd #{nif_dir} && #{build_nif}), env)
 
-    static_lib_path(arch, nif)
+    case static_lib_path(arch, nif) do
+      nil -> raise "NIF build failed. Could not locate static lib"
+      lib -> lib
+    end
   end
 
   def static_lib_path(arch, nif) do
