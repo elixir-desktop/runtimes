@@ -3,7 +3,7 @@ on: ["push", "pull_request"]
 
 jobs:
   build:
-    name: "Build runtimes"
+    name: "Build Android runtimes"
     runs-on: "ubuntu-latest"
     strategy:
       matrix:
