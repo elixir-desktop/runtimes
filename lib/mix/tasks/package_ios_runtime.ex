@@ -1,5 +1,5 @@
 defmodule Mix.Tasks.Package.Ios.Runtime do
-  @otp_source "https://github.com/diodechain/top"
+  @otp_source "https://github.com/diodechain/otp"
   @otp_tag "diode/ios"
 
   alias Mix.Tasks.Package.Ios.Nif
