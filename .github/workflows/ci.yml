@@ -18,17 +18,17 @@ jobs:
         unzip Precompiled.zip
         echo "$HOME/elixir/bin" >> $GITHUB_PATH
     - uses: actions/checkout@v2
-    - name: Build ${{ matrix.arch }} runtimes
+    - name: Build Android ${{ matrix.arch }} runtimes
       run: |
         mix deps.get
         ARCH=${{ matrix.arch }} mix package.android.runtime
         ARCH=${{ matrix.arch }} mix package.android.nif
-    - name: Archive runtimes
+    - name: Archive Android runtimes
       uses: actions/upload-artifact@v2
       with:
         name: ${{ matrix.arch }}-runtime
         path: _build/*.zip
-    - name: ${{ matrix.arch }} release
+    - name: Android ${{ matrix.arch }} release
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
       with:
