@@ -10,7 +10,7 @@ ENV MAKEFLAGS "-j10 -O"
 
 # Setting up openssl
 COPY scripts/install_openssl.sh /work/
-COPY patch/openssl-ios.conf /
+COPY patch /work/patch
 
 # OpenSSL fails to detect this: 
 RUN cp ${NDK_ROOT}/bin/llvm-ar ${NDK_ROOT}/bin/<%= @arch.cpu %>-linux-<%= @arch.android_name %>-ar
