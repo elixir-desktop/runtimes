@@ -21,8 +21,8 @@ jobs:
     - name: Build ${{ matrix.arch }} runtimes
       run: |
         mix deps.get
-        ARCH=${{ matrix.arch }} mix package.runtime
-        ARCH=${{ matrix.arch }} mix package.nif
+        ARCH=${{ matrix.arch }} mix package.android.runtime
+        ARCH=${{ matrix.arch }} mix package.android.nif
     - name: Archive runtimes
       uses: actions/upload-artifact@v2
       with:
@@ -38,7 +38,7 @@ jobs:
     name: "Build iOS runtime"
     runs-on: "macos-latest"
     steps:
-    - run: brew install git elixir carthage
+    - run: brew install git elixir carthage coreutils
     - uses: actions/checkout@v2
     - name: Build runtime
       run: mix package.ios.runtime
