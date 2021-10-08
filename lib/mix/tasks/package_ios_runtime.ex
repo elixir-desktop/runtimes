@@ -97,14 +97,7 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
       IO.puts("liberlang.a (#{arch.id}) already exists...")
     else
       if !File.exists?(otp_target(arch)) do
-        if !File.exists?("_build/otp") do
-          File.mkdir_p!("_build")
-
-          Runtimes.run(
-            "git clone #{@otp_source} _build/otp && cd _build/otp && git checkout #{@otp_tag}"
-          )
-        end
-
+        ensure_otp()
         Runtimes.run(~w(git clone _build/otp #{otp_target(arch)}))
       end
 
@@ -154,19 +147,24 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
         | extra_nifs
       ]
 
-      Runtimes.run(
-        ~w(
+      if extra_nifs != [] do
+        Runtimes.run(
+          ~w(
           cd #{otp_target(arch)} && ./otp_build configure
           --with-ssl=#{openssl_target(arch)}
           --disable-dynamic-ssl-lib
           --xcomp-conf=xcomp/erl-xcomp-#{arch.xcomp}.conf
           --enable-static-nifs=#{Enum.join(nifs, ",")}
         ),
-        env
-      )
+          env
+        )
 
-      Runtimes.run(~w(cd #{otp_target(arch)} && ./otp_build boot -a), env)
-      Runtimes.run(~w(cd #{otp_target(arch)} && ./otp_build release -a), env)
+        Runtimes.run(~w(cd #{otp_target(arch)} && ./otp_build boot -a), env)
+        Runtimes.run(~w(cd #{otp_target(arch)} && ./otp_build release -a), env)
+      end
+
+      {build_host, 0} = System.cmd("#{otp_target(arch)}/erts/autoconf/config.guess", [])
+      build_host = String.trim(build_host)
 
       # [erts_version] = Regex.run(~r/erts-[^ ]+/, File.read!("otp/otp_versions.table"))
       # Locating all built .a files for the target architecture:
@@ -178,7 +176,9 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
           fn name, acc -> [List.to_string(name) | acc] end,
           []
         )
-        |> Enum.filter(fn name -> String.contains?(name, arch.name) end)
+        |> Enum.filter(fn name ->
+          !String.contains?(name, build_host) and String.contains?(name, arch.name)
+        end)
 
       files = files ++ [openssl_lib(arch) | nifs]
 
@@ -191,39 +191,16 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
   # to then reassemble all of them into a single `target` ".a" archive
   defp repackage_archive(files, target) do
     # Removing relative prefix so changing cwd is safe.
-    files = Enum.map(files, fn file -> Path.absname(file) end)
-
-    # Creating a new archive
-    cwd = File.cwd!()
-    tmp_dir = Path.join(cwd, "_build/tmp")
-
-    if File.exists?(tmp_dir) do
-      File.rm_rf!(tmp_dir)
-    end
-
-    # Changing cwd to tmp directory
-    File.mkdir_p!(tmp_dir)
-    :file.set_cwd(String.to_charlist(tmp_dir))
-
-    for file <- files do
-      {_, 0} = System.cmd("ar", ["-x", file])
-    end
-
-    # Popping back to prev directory and getting object list
-    :file.set_cwd(String.to_charlist(cwd))
-
-    objects =
-      File.ls!(tmp_dir)
-      |> Enum.filter(fn obj -> String.ends_with?(obj, ".o") end)
-      |> Enum.map(fn obj -> Path.join(tmp_dir, obj) end)
-
-    {_, 0} = System.cmd("ar", ["-r", target | objects])
+    files = Enum.join(files, " ")
+    Runtimes.run("libtool -static -o #{target} #{files}")
   end
 
   defp buildall(targets, nifs) do
-    for target <- targets do
-      build(target, nifs)
-    end
+    ensure_otp()
+
+    targets
+    |> Enum.map(fn target -> Task.async(fn -> build(target, nifs) end) end)
+    |> Enum.map(fn task -> Task.await(task, 60_000*60*3) end)
 
     {sims, reals} =
       Enum.map(targets, fn target -> runtime_target(get_arch(target)) end)
@@ -256,5 +233,15 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
     if File.exists?(tmp), do: File.rm!(tmp)
     Runtimes.run("lipo -create #{Enum.join(more, " ")} -output #{tmp}")
     [tmp]
+  end
+
+  defp ensure_otp() do
+    if !File.exists?("_build/otp") do
+      File.mkdir_p!("_build")
+
+      Runtimes.run(
+        "git clone #{@otp_source} _build/otp && cd _build/otp && git checkout #{@otp_tag}"
+      )
+    end
   end
 end
