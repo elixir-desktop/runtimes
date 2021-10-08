@@ -45,6 +45,9 @@ defmodule Mix.Tasks.Package.Ios.Nif do
     end
 
     {sdkroot, 0} = System.cmd("xcrun", ["-sdk", arch.sdk, "--show-sdk-path"])
+    sdkroot = String.trim(sdkroot)
+    cflags = arch.cflags <> " -isysroot #{sdkroot} -I#{Path.absname("stubs")}"
+    lflags = "-Wl,-syslibroot,#{sdkroot} -lc++"
 
     env = [
       PATH: path,
@@ -54,12 +57,13 @@ defmodule Mix.Tasks.Package.Ios.Nif do
       CROSSCOMPILE: "iOS",
       STATIC_ERLANG_NIF: "yes",
       CC: "xcrun -sdk #{arch.sdk} cc -arch #{arch.arch}",
-      CFLAGS: arch.cflags,
+      CFLAGS: cflags,
       CXX: "xcrun -sdk #{arch.sdk} c++ -arch #{arch.arch}",
-      CXXFLAGS: arch.cflags,
+      CXXFLAGS: cflags,
       LD: "xcrun -sdk #{arch.sdk} ld -arch #{arch.arch}",
-      LDFLAGS: "-L#{String.trim(sdkroot)}/usr/lib/ -lc++",
+      LDFLAGS: lflags,
       RANLIB: "xcrun -sdk #{arch.sdk} ranlib",
+      LIBTOOL: "xcrun -sdk #{arch.sdk} libtool",
       AR: "xcrun -sdk #{arch.sdk} ar",
       MIX_ENV: "prod",
       MIX_TARGET: "ios"
@@ -88,6 +92,7 @@ defmodule Mix.Tasks.Package.Ios.Nif do
   def static_lib_path(arch, nif) do
     nif_dir = "_build/#{arch.name}/#{nif.basename}"
 
+    # Finding all .a files
     :filelib.fold_files(
       String.to_charlist(nif_dir),
       '.+\\.a$',
@@ -95,6 +100,7 @@ defmodule Mix.Tasks.Package.Ios.Nif do
       fn name, acc -> [List.to_string(name) | acc] end,
       []
     )
+    |> Enum.filter(fn path -> String.contains?(path, "priv") end)
     |> List.first()
   end
 
