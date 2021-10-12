@@ -108,49 +108,18 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
         RELEASE_LIBBEAM: "yes"
       ]
 
-      nifs = [
-        "#{otp_target(arch)}/lib/asn1/priv/lib/#{arch.name}/asn1rt_nif.a",
-        "#{otp_target(arch)}/lib/crypto/priv/lib/#{arch.name}/crypto.a"
-      ]
+      if System.get_env("SKIP_CLEAN_BUILD") == nil do
+        nifs = [
+          "#{otp_target(arch)}/lib/asn1/priv/lib/#{arch.name}/asn1rt_nif.a",
+          "#{otp_target(arch)}/lib/crypto/priv/lib/#{arch.name}/crypto.a"
+        ]
 
-      # First round build to generate headers and libs required to build nifs:
-      Runtimes.run(
-        ~w(
+        # First round build to generate headers and libs required to build nifs:
+        Runtimes.run(
+          ~w(
           cd #{otp_target(arch)} && git clean -xdf &&
           ./otp_build autoconf &&
           ./otp_build configure
-          --with-ssl=#{openssl_target(arch)}
-          --disable-dynamic-ssl-lib
-          --xcomp-conf=xcomp/erl-xcomp-#{arch.xcomp}.conf
-          --enable-static-nifs=#{Enum.join(nifs, ",")}
-        ),
-        env
-      )
-
-      Runtimes.run(~w(cd #{otp_target(arch)} && ./otp_build boot -a), env)
-      Runtimes.run(~w(cd #{otp_target(arch)} && ./otp_build release -a), env)
-
-      # Second round
-      # The extra path can only be generated AFTER the nifs are compiled
-      # so this requires two rounds...
-      extra_nifs =
-        Enum.map(extra_nifs, fn nif ->
-          Nif.build(archid, nif)
-
-          Nif.static_lib_path(arch, Runtimes.get_nif(nif))
-          |> Path.absname()
-        end)
-
-      nifs = [
-        "#{otp_target(arch)}/lib/asn1/priv/lib/#{arch.name}/asn1rt_nif.a",
-        "#{otp_target(arch)}/lib/crypto/priv/lib/#{arch.name}/crypto.a"
-        | extra_nifs
-      ]
-
-      if extra_nifs != [] do
-        Runtimes.run(
-          ~w(
-          cd #{otp_target(arch)} && ./otp_build configure
           --with-ssl=#{openssl_target(arch)}
           --disable-dynamic-ssl-lib
           --xcomp-conf=xcomp/erl-xcomp-#{arch.xcomp}.conf
@@ -162,6 +131,39 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
         Runtimes.run(~w(cd #{otp_target(arch)} && ./otp_build boot -a), env)
         Runtimes.run(~w(cd #{otp_target(arch)} && ./otp_build release -a), env)
       end
+
+      # Second round
+      # The extra path can only be generated AFTER the nifs are compiled
+      # so this requires two rounds...
+      extra_nifs =
+        Enum.map(extra_nifs, fn nif ->
+          if Nif.static_lib_path(arch, Runtimes.get_nif(nif)) == nil do
+            Nif.build(archid, nif)
+          end
+
+          Nif.static_lib_path(arch, Runtimes.get_nif(nif))
+          |> Path.absname()
+        end)
+
+      nifs = [
+        "#{otp_target(arch)}/lib/asn1/priv/lib/#{arch.name}/asn1rt_nif.a",
+        "#{otp_target(arch)}/lib/crypto/priv/lib/#{arch.name}/crypto.a"
+        | extra_nifs
+      ]
+
+      Runtimes.run(
+        ~w(
+          cd #{otp_target(arch)} && ./otp_build configure
+          --with-ssl=#{openssl_target(arch)}
+          --disable-dynamic-ssl-lib
+          --xcomp-conf=xcomp/erl-xcomp-#{arch.xcomp}.conf
+          --enable-static-nifs=#{Enum.join(nifs, ",")}
+        ),
+        env
+      )
+
+      Runtimes.run(~w(cd #{otp_target(arch)} && ./otp_build boot -a), env)
+      Runtimes.run(~w(cd #{otp_target(arch)} && ./otp_build release -a), env)
 
       {build_host, 0} = System.cmd("#{otp_target(arch)}/erts/autoconf/config.guess", [])
       build_host = String.trim(build_host)
@@ -198,9 +200,12 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
   defp buildall(targets, nifs) do
     ensure_otp()
 
-    targets
-    |> Enum.map(fn target -> Task.async(fn -> build(target, nifs) end) end)
-    |> Enum.map(fn task -> Task.await(task, 60_000*60*3) end)
+    # targets
+    # |> Enum.map(fn target -> Task.async(fn -> build(target, nifs) end) end)
+    # |> Enum.map(fn task -> Task.await(task, 60_000*60*3) end)
+    for target <- targets do
+      build(target, nifs)
+    end
 
     {sims, reals} =
       Enum.map(targets, fn target -> runtime_target(get_arch(target)) end)
