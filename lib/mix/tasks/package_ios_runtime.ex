@@ -53,7 +53,7 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
   end
 
   def run([]) do
-    buildall(Map.keys(architectures()), ["https://github.com/elixir-desktop/exqlite.git"])
+    buildall(Map.keys(architectures()), ["https://github.com/elixir-sqlite/exqlite"])
   end
 
   def run(nifs) do
