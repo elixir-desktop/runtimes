@@ -39,16 +39,16 @@ defmodule Runtimes do
     {beam_dockerfile(args), args}
   end
 
-  def generate_nif_dockerfile(arch, git, tag) do
+  def generate_nif_dockerfile(arch, nif) do
     {parent, args} = generate_beam_dockerfile(arch)
 
     args =
       args ++
-        [parent: parent, repo: git, tag: tag, basename: Path.basename(git, ".git")]
+        [parent: parent, repo: nif.repo, tag: nif.tag, basename: nif.basename]
 
     content = nif_dockerfile(args)
 
-    file = "#{Path.basename(git, ".git")}-#{arch}.dockerfile.tmp"
+    file = "#{nif.basename}-#{arch}.dockerfile.tmp"
     File.write!(file, content)
     file
   end
@@ -56,15 +56,27 @@ defmodule Runtimes do
   EEx.function_from_file(:defp, :nif_dockerfile, "#{__DIR__}/nif.dockerfile", [:assigns])
   EEx.function_from_file(:defp, :beam_dockerfile, "#{__DIR__}/beam.dockerfile", [:assigns])
 
-  def run(args) do
+  def run(args, env \\ []) do
     args = if is_list(args), do: Enum.join(args, " "), else: args
+
+    env =
+      Enum.map(env, fn {key, value} ->
+        case key do
+          atom when is_atom(atom) -> {Atom.to_string(atom), value}
+          _other -> {key, value}
+        end
+      end)
+
     IO.puts("RUN: #{args}")
 
-    {_, 0} =
+    {ret, 0} =
       System.cmd("bash", ["-c", args],
         stderr_to_stdout: true,
-        into: IO.binstream(:stdio, :line)
+        into: IO.binstream(:stdio, :line),
+        env: env
       )
+
+    ret
   end
 
   def docker_build(image, file) do
@@ -89,10 +101,24 @@ defmodule Runtimes do
 
   def default_nifs() do
     [
-      "https://github.com/mmzeeman/esqlite.git",
-      "https://github.com/elixir-sqlite/exqlite.git",
+      "https://github.com/diodechain/esqlite.git",
+      "https://github.com/elixir-sqlite/exqlite",
       {"https://github.com/diodechain/erlang-keccakf1600.git", "keccakf1600"},
       "https://github.com/diodechain/libsecp256k1.git"
     ]
+  end
+
+  def get_nif(url) when is_binary(url) do
+    name = Path.basename(url, ".git")
+    get_nif({url, name})
+  end
+
+  def get_nif({url, name}) do
+    %{
+      tag: nil,
+      repo: url,
+      name: name,
+      basename: Path.basename(url, ".git")
+    }
   end
 end

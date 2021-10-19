@@ -1,4 +1,4 @@
-defmodule Mix.Tasks.Package.Runtime do
+defmodule Mix.Tasks.Package.Android.Runtime do
   use Mix.Task
   require EEx
 

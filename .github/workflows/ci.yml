@@ -3,7 +3,7 @@ on: ["push", "pull_request"]
 
 jobs:
   build:
-    name: "Build runtimes"
+    name: "Build Android runtimes"
     runs-on: "ubuntu-latest"
     strategy:
       matrix:
@@ -18,18 +18,37 @@ jobs:
         unzip Precompiled.zip
         echo "$HOME/elixir/bin" >> $GITHUB_PATH
     - uses: actions/checkout@v2
-    - name: Build ${{ matrix.arch }} runtimes
+    - name: Build Android ${{ matrix.arch }} runtimes
       run: |
         mix deps.get
-        ARCH=${{ matrix.arch }} mix package.runtime
-        ARCH=${{ matrix.arch }} mix package.nif
-    - name: Archive runtimes
+        ARCH=${{ matrix.arch }} mix package.android.runtime
+        ARCH=${{ matrix.arch }} mix package.android.nif
+    - name: Archive Android runtimes
       uses: actions/upload-artifact@v2
       with:
         name: ${{ matrix.arch }}-runtime
         path: _build/*.zip
-    - name: ${{ matrix.arch }} release
+    - name: Android ${{ matrix.arch }} release
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
       with:
         files: _build/*.zip
+
+  ios:
+    name: "Build iOS runtime"
+    runs-on: "macos-latest"
+    steps:
+    - run: brew install git elixir carthage coreutils
+    - uses: actions/checkout@v2
+    - name: Build runtime
+      run: mix package.ios.runtime
+    - name: Archive runtimes
+      uses: actions/upload-artifact@v2
+      with:
+        name: iOS-runtime
+        path: _build/liberlang.xcframework
+    - name: iOS release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: _build/liberlang.xcframework
