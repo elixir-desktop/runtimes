@@ -19,7 +19,7 @@ RUN cp ${NDK_ROOT}/bin/llvm-ranlib ${NDK_ROOT}/bin/<%= @arch.cpu %>-linux-<%= @a
 RUN ARCH="android-<%= @arch.id %> -D__ANDROID_API__=<%= @arch.abi %>" ./install_openssl.sh
 
 # Fetching OTP
-RUN git clone --depth 1 -b diode/beta https://github.com/diodechain/otp.git
+RUN git clone <%= Runtimes.otp_source() %> otp && cd otp && git checkout <%= Runtimes.otp_tag() %>
 
 <%= if @arch.id == "arm" do %>
 ENV LIBS -L$NDK_ROOT/lib64/clang/12.0.5/lib/linux/ /usr/local/openssl/lib/libcrypto.a -lclang_rt.builtins-arm-android

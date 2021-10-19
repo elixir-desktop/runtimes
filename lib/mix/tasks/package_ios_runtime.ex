@@ -1,7 +1,4 @@
 defmodule Mix.Tasks.Package.Ios.Runtime do
-  @otp_source "https://github.com/diodechain/otp"
-  @otp_tag "diode/ios"
-
   alias Mix.Tasks.Package.Ios.Nif
   use Mix.Task
   require EEx
@@ -245,7 +242,7 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
       File.mkdir_p!("_build")
 
       Runtimes.run(
-        "git clone #{@otp_source} _build/otp && cd _build/otp && git checkout #{@otp_tag}"
+        "git clone #{Runtimes.otp_source()} _build/otp && cd _build/otp && git checkout #{Runtimes.otp_tag()}"
       )
     end
   end

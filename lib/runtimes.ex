@@ -121,4 +121,12 @@ defmodule Runtimes do
       basename: Path.basename(url, ".git")
     }
   end
+
+  def otp_source() do
+    System.get_env("OTP_SOURCE", nil) || "https://github.com/diodechain/otp"
+  end
+
+  def otp_tag() do
+    System.get_env("OTP_TAG", nil) || "diode/ios"
+  end
 end

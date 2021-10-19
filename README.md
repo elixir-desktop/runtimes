@@ -5,16 +5,22 @@ To use elixir-desktop on mobile-phones this projects packages the BEAM Virtual M
 - Android arm 64-bit
 - Android arm 32-bit
 - Android x86 64-bit (for the Android Simulator)
+- iOS arm 32-bit (very old iPhones)
+- iOS arm 64-bit (current iPhones)
+- iOS arm 64-bit (MacOS M1 Simulator)
+- iOS x86_64     (MacOS Intel Simulator)
 
 ## Building
 
-Runtimes depends on docker and the dockercross/* docker-images created for cross-compilation. If docker is installed for your
-current user then building all the runtimes bundled in a zip file is as easy as:
+Android runtimes depends on docker and the dockercross/* docker-images created for cross-compilation. If docker is installed for your current user then building all the runtimes bundled in a zip file is as easy as:
 
-`mix package.runtime`
+`mix package.android.runtime`
 
 After this you should have all runtimes in `_build/#{arch}-runtime.zip` these then will need to be packaged with your mobile app. 
 
+For iOS builds are triggered similiary with:
+
+`mix package.ios.runtime`
 
 ## Android Versions and API-Levels (update Sept. 7th 2021)
 
