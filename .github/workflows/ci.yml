@@ -8,6 +8,8 @@ jobs:
     strategy:
       matrix:
         arch: ["arm", "arm64", "x86_64"]
+    env:
+      OTP_TAG: OTP-24.1.2+ios
     steps:
     - run: |
         wget https://packages.erlang-solutions.com/erlang-solutions_2.0_all.deb && sudo dpkg -i erlang-solutions_2.0_all.deb
