@@ -40,20 +40,22 @@ defmodule Runtimes do
   def default_nifs() do
     [
       "https://github.com/diodechain/esqlite.git",
-      "https://github.com/elixir-sqlite/exqlite",
-      {"https://github.com/diodechain/erlang-keccakf1600.git", "keccakf1600"},
+      {"https://github.com/elixir-sqlite/exqlite", tag: "v0.7.5"},
+      {"https://github.com/diodechain/erlang-keccakf1600.git", name: "keccakf1600"},
       "https://github.com/diodechain/libsecp256k1.git"
     ]
   end
 
   def get_nif(url) when is_binary(url) do
-    name = Path.basename(url, ".git")
-    get_nif({url, name})
+    get_nif({url, []})
   end
 
-  def get_nif({url, name}) do
+  def get_nif({url, opts}) do
+    name = Keyword.get(opts, :name, Path.basename(url, ".git"))
+    tag = Keyword.get(opts, :tag, nil)
+
     %{
-      tag: nil,
+      tag: tag,
       repo: url,
       name: name,
       basename: Path.basename(url, ".git")
