@@ -19,7 +19,7 @@ ENV CROSSCOMPILE Android
 RUN git clone <%= @repo %>
 WORKDIR /work/<%= @basename %>
 <%= if @tag do %> 
-RUN git checkout @tag
+RUN git checkout <%= @tag %>
 <% end %>
 
 # Three variants of building {:mix, :make, :rebar3}
