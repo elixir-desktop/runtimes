@@ -1,10 +1,11 @@
 defmodule Mix.Tasks.Package.Android.Nif do
   use Mix.Task
+  alias Mix.Tasks.Package.Android.Runtime
   require EEx
 
   def run([]) do
     for nif <- Runtimes.default_nifs() do
-      for arch <- Runtimes.default_archs() do
+      for arch <- Runtime.default_archs() do
         build(arch, Runtimes.get_nif(nif))
       end
     end
@@ -22,7 +23,7 @@ defmodule Mix.Tasks.Package.Android.Nif do
   end
 
   defp build(arch, nif) do
-    type = Runtimes.get_arch(arch).android_type
+    type = Runtime.get_arch(arch).android_type
     target = "_build/#{type}-nif-#{nif.name}.zip"
 
     if exists?(target) do
@@ -32,7 +33,7 @@ defmodule Mix.Tasks.Package.Android.Nif do
 
       Runtimes.docker_build(
         image_name,
-        Runtimes.generate_nif_dockerfile(arch, nif)
+        Runtime.generate_nif_dockerfile(arch, nif)
       )
 
       Runtimes.run(~w(docker run --rm

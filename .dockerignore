@@ -1,3 +1,11 @@
 /otp
-/_build
+/_build/dev
+/_build/x86_64
+/_build/arm
+/_build/arm64
+/lib
+/.history
+/.elixir_ls
+/.github
 *.zip
+*.tmp

@@ -5,7 +5,7 @@ ENV NDK_ROOT $CROSS_ROOT
 ENV ANDROID_NDK_HOME $CROSS_ROOT
 ENV NDK_ABI_PLAT <%= @arch.android_name %><%= @arch.abi %>
 ENV PATH $NDK_ROOT/bin:$PATH
-ENV FC= CPP= LD= CC=clang AR=ar
+ENV FC= CPP= LD= CXX=clang++ CC=clang AR=ar
 ENV MAKEFLAGS "-j10 -O"
 
 # Setting up openssl
@@ -19,7 +19,7 @@ RUN cp ${NDK_ROOT}/bin/llvm-ranlib ${NDK_ROOT}/bin/<%= @arch.cpu %>-linux-<%= @a
 RUN ARCH="android-<%= @arch.id %> -D__ANDROID_API__=<%= @arch.abi %>" ./install_openssl.sh
 
 # Fetching OTP
-RUN git clone <%= Runtimes.otp_source() %> otp && cd otp && git checkout <%= Runtimes.otp_tag() %>
+COPY _build/otp otp
 
 <%= if @arch.id == "arm" do %>
 ENV LIBS -L$NDK_ROOT/lib64/clang/12.0.5/lib/linux/ /usr/local/openssl/lib/libcrypto.a -lclang_rt.builtins-arm-android
@@ -30,7 +30,8 @@ ENV LIBS /usr/local/openssl/lib/libcrypto.a
 # We need -z global for liberlang.so because:
 # https://android-ndk.narkive.com/iNWj05IV/weak-symbol-linking-when-loading-dynamic-libraries
 # https://android.googlesource.com/platform/bionic/+/30b17e32f0b403a97cef7c4d1fcab471fa316340/linker/linker_namespaces.cpp#100
-ENV CFLAGS="-Os -fPIC" CXXFLAGS="-Os -fPIC" LDFLAGS="-z global"
+ENV CFLAGS="-Os -fPIC" CXXFLAGS="-Os -fPIC" LDFLAGS="-z global" CXX= CC=
+
 # RUN env
 WORKDIR /work/otp
 RUN ./otp_build autoconf
@@ -41,7 +42,9 @@ RUN ./otp_build autoconf
 # Build run #1, building the x86 based cross compiler which will generate the .beam files
 <% 
 config = "--with-ssl=/usr/local/openssl/ --disable-dynamic-ssl-lib --without-javac --without-odbc --without-wx --without-debugger --without-observer --without-cdv --without-et --xcomp-conf=xcomp/erl-xcomp-#{@arch.id}-android.conf"
-config = if @arch.id == "x86_64", do: "--disable-jit #{config}", else: config
+# Disabled jit for arm and x86_64 until https://github.com/erlang/otp/issues/4950 is fixed
+# config = if @arch.id == "x86_64", do: "--disable-jit #{config}", else: config
+config = "--disable-jit #{config}"
 %>
 RUN ./otp_build configure <%= config %>
 RUN ./otp_build boot -a

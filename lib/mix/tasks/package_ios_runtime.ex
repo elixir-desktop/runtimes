@@ -94,7 +94,7 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
       IO.puts("liberlang.a (#{arch.id}) already exists...")
     else
       if !File.exists?(otp_target(arch)) do
-        ensure_otp()
+        Runtimes.ensure_otp()
         Runtimes.run(~w(git clone _build/otp #{otp_target(arch)}))
       end
 
@@ -195,7 +195,7 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
   end
 
   defp buildall(targets, nifs) do
-    ensure_otp()
+    Runtimes.ensure_otp()
 
     # targets
     # |> Enum.map(fn target -> Task.async(fn -> build(target, nifs) end) end)
@@ -235,15 +235,5 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
     if File.exists?(tmp), do: File.rm!(tmp)
     Runtimes.run("lipo -create #{Enum.join(more, " ")} -output #{tmp}")
     [tmp]
-  end
-
-  defp ensure_otp() do
-    if !File.exists?("_build/otp") do
-      File.mkdir_p!("_build")
-
-      Runtimes.run(
-        "git clone #{Runtimes.otp_source()} _build/otp && cd _build/otp && git checkout #{Runtimes.otp_tag()}"
-      )
-    end
   end
 end
