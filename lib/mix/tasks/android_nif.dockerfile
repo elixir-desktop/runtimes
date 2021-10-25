@@ -16,7 +16,7 @@ ENV ERTS_INCLUDE_DIR /work/otp/release/<%= @arch.pc %>-linux-<%= @arch.android_n
 ENV HOST <%= @arch.cpu %>
 ENV CROSSCOMPILE Android
 
-RUN git clone     <%= @repo %>
+RUN git clone <%= @repo %>
 WORKDIR /work/<%= @basename %>
 <%= if @tag do %> 
 RUN git checkout @tag
