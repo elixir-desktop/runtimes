@@ -48,11 +48,14 @@ defmodule Mix.Tasks.Package.Ios.Nif do
     sdkroot = String.trim(sdkroot)
     cflags = arch.cflags <> " -isysroot #{sdkroot} -I#{Path.absname("stubs")}"
     lflags = "-Wl,-syslibroot,#{sdkroot} -lc++"
+    erts_version = Runtimes.erts_version()
 
     env = [
       PATH: path,
-      ERLANG_PATH: Path.join(otp_target(arch), "release/#{arch.name}/erts-12.0/include"),
-      ERTS_INCLUDE_DIR: Path.join(otp_target(arch), "release/#{arch.name}/erts-12.0/include"),
+      ERLANG_PATH:
+        Path.join(otp_target(arch), "release/#{arch.name}/erts-#{erts_version}/include"),
+      ERTS_INCLUDE_DIR:
+        Path.join(otp_target(arch), "release/#{arch.name}/erts-#{erts_version}/include"),
       HOST: arch.name,
       CROSSCOMPILE: "iOS",
       STATIC_ERLANG_NIF: "yes",

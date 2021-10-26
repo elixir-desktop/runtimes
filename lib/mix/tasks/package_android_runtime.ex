@@ -3,7 +3,7 @@ defmodule Mix.Tasks.Package.Android.Runtime do
   require EEx
 
   def run(_) do
-    buildall(Map.keys(Runtimes.architectures()))
+    buildall(default_archs())
   end
 
   defp target(arch) do
@@ -11,13 +11,15 @@ defmodule Mix.Tasks.Package.Android.Runtime do
   end
 
   def build(arch) do
-    arch = Runtimes.get_arch(arch)
+    arch = get_arch(arch)
     file_name = target(arch)
 
     if File.exists?(file_name) do
       :ok
     else
-      {content, _args} = Runtimes.generate_beam_dockerfile(arch.id)
+      Runtimes.ensure_otp()
+
+      {content, _args} = generate_beam_dockerfile(arch.id)
       image_name = "beam-#{arch.id}"
       file = "#{image_name}.dockerfile.tmp"
       File.write!(file, content)
@@ -46,5 +48,68 @@ defmodule Mix.Tasks.Package.Android.Runtime do
   defp buildall([head | rest]) do
     build(head)
     buildall(rest)
+  end
+
+  def architectures() do
+    %{
+      "arm" => %{
+        id: "arm",
+        abi: 23,
+        cpu: "arm",
+        pc: "arm-unknown",
+        android_name: "androideabi",
+        android_type: "armeabi-v7a"
+      },
+      "arm64" => %{
+        id: "arm64",
+        abi: 23,
+        cpu: "aarch64",
+        pc: "aarch64-unknown",
+        android_name: "android",
+        android_type: "arm64-v8a"
+      },
+      "x86_64" => %{
+        id: "x86_64",
+        abi: 23,
+        cpu: "x86_64",
+        pc: "x86_64-pc",
+        android_name: "android",
+        android_type: "x86_64"
+      }
+    }
+  end
+
+  def get_arch(arch) do
+    Map.fetch!(architectures(), arch)
+  end
+
+  def generate_beam_dockerfile(arch) do
+    args = [arch: get_arch(arch), erts_version: Runtimes.erts_version()]
+    {beam_dockerfile(args), args}
+  end
+
+  def generate_nif_dockerfile(arch, nif) do
+    {parent, args} = generate_beam_dockerfile(arch)
+
+    args =
+      args ++
+        [parent: parent, repo: nif.repo, tag: nif.tag, basename: nif.basename]
+
+    content = nif_dockerfile(args)
+
+    file = "#{nif.basename}-#{arch}.dockerfile.tmp"
+    File.write!(file, content)
+    file
+  end
+
+  EEx.function_from_file(:defp, :nif_dockerfile, "#{__DIR__}/android_nif.dockerfile", [:assigns])
+
+  EEx.function_from_file(:defp, :beam_dockerfile, "#{__DIR__}/android_beam.dockerfile", [:assigns])
+
+  def default_archs() do
+    case System.get_env("ARCH", nil) do
+      nil -> ["arm", "arm64", "x86_64"]
+      arch -> [arch]
+    end
   end
 end
