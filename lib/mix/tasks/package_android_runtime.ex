@@ -84,7 +84,7 @@ defmodule Mix.Tasks.Package.Android.Runtime do
   end
 
   def generate_beam_dockerfile(arch) do
-    args = [arch: get_arch(arch)]
+    args = [arch: get_arch(arch), erts_version: Runtimes.erts_version()]
     {beam_dockerfile(args), args}
   end
 

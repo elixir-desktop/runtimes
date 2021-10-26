@@ -2,8 +2,6 @@
 
 # ensure there is rebar3 in path
 export PATH=$PATH:~/.mix
-unset CC
-unset CXX
 
 # mix has priority over `make` for projects like exqlite
 if [ -f "mix.exs" ]; then
