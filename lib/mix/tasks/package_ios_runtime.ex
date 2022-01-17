@@ -13,7 +13,7 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
         openssl_arch: "ios-xcrun",
         xcomp: "arm-ios",
         name: "arm-apple-ios",
-        cflags: "-mios-version-min=7.0.0 -fno-common -Os -D__IOS__=yes"
+        cflags: "-fembed-bitcode -mios-version-min=7.0.0 -fno-common -Os -D__IOS__=yes"
       },
       "ios-arm64" => %{
         arch: "arm64",
@@ -22,7 +22,7 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
         openssl_arch: "ios64-xcrun",
         xcomp: "arm64-ios",
         name: "aarch64-apple-ios",
-        cflags: "-mios-version-min=7.0.0 -fno-common -Os -D__IOS__=yes"
+        cflags: "-fembed-bitcode -mios-version-min=7.0.0 -fno-common -Os -D__IOS__=yes"
       },
       "iossimulator-x86_64" => %{
         arch: "x86_64",
@@ -172,12 +172,20 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
           String.to_charlist(otp_target(arch)),
           '.+\\.a$',
           true,
-          fn name, acc -> [List.to_string(name) | acc] end,
-          []
+          fn name, acc ->
+            name = List.to_string(name)
+
+            if String.contains?(name, arch.name) and
+                 not (String.contains?(name, build_host) or
+                        String.ends_with?(name, "_st.a") or String.ends_with?(name, "_r.a")) do
+              Map.put(acc, Path.basename(name), name)
+            else
+              acc
+            end
+          end,
+          %{}
         )
-        |> Enum.filter(fn name ->
-          !String.contains?(name, build_host) and String.contains?(name, arch.name)
-        end)
+        |> Map.values()
 
       files = files ++ [openssl_lib(arch) | nifs]
 
