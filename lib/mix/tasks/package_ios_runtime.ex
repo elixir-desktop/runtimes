@@ -52,7 +52,6 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
   def run(["with_diode_nifs"]) do
     nifs = [
       "https://github.com/diodechain/esqlite.git",
-      "https://github.com/diodechain/erlang-keccakf1600.git",
       "https://github.com/diodechain/libsecp256k1.git"
     ]
 
