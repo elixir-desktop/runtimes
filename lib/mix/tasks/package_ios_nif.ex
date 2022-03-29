@@ -47,7 +47,9 @@ defmodule Mix.Tasks.Package.Ios.Nif do
     {sdkroot, 0} = System.cmd("xcrun", ["-sdk", arch.sdk, "--show-sdk-path"])
     sdkroot = String.trim(sdkroot)
     cflags = arch.cflags <> " -isysroot #{sdkroot} -I#{Path.absname("stubs")}"
-    lflags = "-Wl,-syslibroot,#{sdkroot} -lc++"
+    # got: ld: only one -syslibroot is accepted for bitcode bundle for architecture armv7
+    #lflags = "-Wl,-syslibroot,#{sdkroot} -lc++"
+    lflags = "-lc++"
     erts_version = Runtimes.erts_version()
 
     env = [

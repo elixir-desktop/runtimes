@@ -49,8 +49,18 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
     Map.fetch!(architectures(), arch)
   end
 
+  def run(["with_diode_nifs"]) do
+    nifs = [
+      "https://github.com/diodechain/esqlite.git",
+      "https://github.com/diodechain/erlang-keccakf1600.git",
+      "https://github.com/diodechain/libsecp256k1.git"
+    ]
+
+    run(nifs)
+  end
+
   def run([]) do
-    buildall(Map.keys(architectures()), ["https://github.com/elixir-sqlite/exqlite"])
+    run(["https://github.com/elixir-sqlite/exqlite"])
   end
 
   def run(nifs) do
