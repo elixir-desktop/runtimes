@@ -59,7 +59,7 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
   end
 
   def run([]) do
-    run(["https://github.com/elixir-sqlite/exqlite"])
+    run(["https://github.com/elixir-desktop/exqlite"])
   end
 
   def run(nifs) do

@@ -37,8 +37,11 @@ defmodule Mix.Tasks.Package.Ios.Nif do
       Runtimes.run(~w(
         mkdir #{elixir_target()} &&
         cd #{elixir_target()} &&
-        wget https://github.com/elixir-lang/elixir/releases/download/v1.11.4/Precompiled.zip &&
-        unzip Precompiled.zip
+        wget https://github.com/elixir-lang/elixir/archive/v1.13.4.zip &&
+        unzip v1.13.4.zip &&
+        cd elixir-1.13.4 &&
+        make &&
+        mv * ..
         ))
 
       Runtimes.run("mix do local.hex --force && mix local.rebar --force", PATH: path)
