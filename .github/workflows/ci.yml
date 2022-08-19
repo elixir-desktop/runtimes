@@ -1,7 +1,7 @@
 name: "CI"
 on: ["push", "pull_request"]
 env:
-  OTP_TAG: OTP-25.0-rc2
+  OTP_TAG: OTP-25.0
   OTP_SOURCE: https://github.com/erlang/otp
 
 jobs:
