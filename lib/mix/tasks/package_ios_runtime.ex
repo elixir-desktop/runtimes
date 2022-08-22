@@ -123,8 +123,8 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
         # First round build to generate headers and libs required to build nifs:
         Runtimes.run(
           ~w(
-          cd #{otp_target(arch)} && git clean -xdf &&
-          ./otp_build autoconf &&
+          cd #{otp_target(arch)} &&
+          git clean -xdf &&
           ./otp_build configure
           --with-ssl=#{openssl_target(arch)}
           --disable-dynamic-ssl-lib
