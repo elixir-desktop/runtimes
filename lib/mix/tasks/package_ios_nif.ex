@@ -34,16 +34,7 @@ defmodule Mix.Tasks.Package.Ios.Nif do
     if File.exists?(Path.join(elixir_target(), "bin")) do
       IO.puts("Elixir already exists...")
     else
-      Runtimes.run(~w(
-        mkdir #{elixir_target()} &&
-        cd #{elixir_target()} &&
-        wget https://github.com/elixir-lang/elixir/archive/v1.13.4.zip &&
-        unzip v1.13.4.zip &&
-        cd elixir-1.13.4 &&
-        make &&
-        mv * ..
-        ))
-
+      Runtimes.run(["scripts/install_elixir.sh", elixir_target()])
       Runtimes.run("mix do local.hex --force && mix local.rebar --force", PATH: path)
     end
 
@@ -51,7 +42,7 @@ defmodule Mix.Tasks.Package.Ios.Nif do
     sdkroot = String.trim(sdkroot)
     cflags = arch.cflags <> " -isysroot #{sdkroot} -I#{Path.absname("stubs")}"
     # got: ld: only one -syslibroot is accepted for bitcode bundle for architecture armv7
-    #lflags = "-Wl,-syslibroot,#{sdkroot} -lc++"
+    # lflags = "-Wl,-syslibroot,#{sdkroot} -lc++"
     lflags = "-lc++"
     erts_version = Runtimes.erts_version()
 
