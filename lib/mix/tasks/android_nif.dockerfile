@@ -1,7 +1,7 @@
 <%= @parent %>
 
 WORKDIR /work
-RUN apt install -y erlang 
+RUN apt update && apt install -y erlang 
 COPY scripts/install_elixir.sh /work/
 RUN ./install_elixir.sh /work/elixir/ && \
     ln -s /work/elixir/bin/* /usr/local/bin/
