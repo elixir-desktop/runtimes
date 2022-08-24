@@ -34,7 +34,6 @@ ENV CFLAGS="-Os -fPIC" CXXFLAGS="-Os -fPIC" LDFLAGS="-z global" CXX= CC=
 
 # RUN env
 WORKDIR /work/otp
-RUN ./otp_build autoconf
 
 # Build with debugger produces
 # dbg_wx_filedialog_win.erl:22: behaviour wx_object undefined

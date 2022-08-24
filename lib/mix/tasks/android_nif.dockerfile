@@ -1,12 +1,10 @@
 <%= @parent %>
 
 WORKDIR /work
-RUN mkdir /work/elixir && cd /work/elixir && \
-    wget https://github.com/elixir-lang/elixir/releases/download/v1.11.4/Precompiled.zip && \
-    unzip Precompiled.zip && \
+RUN apt update && apt install -y erlang 
+COPY scripts/install_elixir.sh /work/
+RUN ./install_elixir.sh /work/elixir/ && \
     ln -s /work/elixir/bin/* /usr/local/bin/
-
-RUN apt install -y erlang 
 
 WORKDIR /work
 RUN mix local.hex --force && mix local.rebar

@@ -52,7 +52,6 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
   def run(["with_diode_nifs"]) do
     nifs = [
       "https://github.com/diodechain/esqlite.git",
-      "https://github.com/diodechain/erlang-keccakf1600.git",
       "https://github.com/diodechain/libsecp256k1.git"
     ]
 
@@ -60,7 +59,7 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
   end
 
   def run([]) do
-    run(["https://github.com/elixir-sqlite/exqlite"])
+    run(["https://github.com/elixir-desktop/exqlite"])
   end
 
   def run(nifs) do
@@ -124,8 +123,8 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
         # First round build to generate headers and libs required to build nifs:
         Runtimes.run(
           ~w(
-          cd #{otp_target(arch)} && git clean -xdf &&
-          ./otp_build autoconf &&
+          cd #{otp_target(arch)} &&
+          git clean -xdf &&
           ./otp_build configure
           --with-ssl=#{openssl_target(arch)}
           --disable-dynamic-ssl-lib
