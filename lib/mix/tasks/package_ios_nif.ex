@@ -35,8 +35,11 @@ defmodule Mix.Tasks.Package.Ios.Nif do
       IO.puts("Elixir already exists...")
     else
       Runtimes.run(["scripts/install_elixir.sh", elixir_target()])
-      Runtimes.run("mix do local.hex --force && mix local.rebar --force", PATH: path)
     end
+
+    Runtimes.run("mix local.hex --force --if-missing && mix local.rebar --force --if-missing",
+      PATH: path
+    )
 
     {sdkroot, 0} = System.cmd("xcrun", ["-sdk", arch.sdk, "--show-sdk-path"])
     sdkroot = String.trim(sdkroot)

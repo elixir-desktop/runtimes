@@ -41,6 +41,24 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
         xcomp: "arm64-iossimulator",
         name: "aarch64-apple-iossimulator",
         cflags: "-mios-simulator-version-min=7.0.0 -fno-common -Os -D__IOS__=yes"
+      },
+      "macos-x86_64" => %{
+        arch: "x86_64",
+        id: "macos",
+        sdk: "macosx",
+        openssl_arch: "macos-x86_64-xcrun",
+        xcomp: "x86_64-darwin",
+        name: "x86_64-apple-darwin",
+        cflags: "-fno-common -Os -target x86_64-apple-macos10.12"
+      },
+      "macos-arm64" => %{
+        arch: "arm64",
+        id: "macos",
+        sdk: "macosx",
+        openssl_arch: "macos-arm64-xcrun",
+        xcomp: "aarch64-darwin",
+        name: "aarch64-apple-darwin",
+        cflags: "-fno-common -Os -target arm64-apple-macos10.12"
       }
     }
   end
@@ -121,14 +139,28 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
         ]
 
         # First round build to generate headers and libs required to build nifs:
+        Runtimes.run(~w(
+          cd #{otp_target(arch)} &&
+          git clean -xdf))
+
+        # Ensure patched xcomp file
+        if not File.exists?("#{otp_target(arch)}/xcomp/erl-xcomp-#{arch.xcomp}.conf") do
+          File.copy!(
+            "patch/erl-xcomp-#{arch.xcomp}.conf",
+            "#{otp_target(arch)}/xcomp/erl-xcomp-#{arch.xcomp}.conf"
+          )
+        end
+
         Runtimes.run(
           ~w(
-          cd #{otp_target(arch)} &&
-          git clean -xdf &&
-          ./otp_build configure
+            cd #{otp_target(arch)} &&
+
+            ./otp_build configure
           --with-ssl=#{openssl_target(arch)}
           --disable-dynamic-ssl-lib
           --xcomp-conf=xcomp/erl-xcomp-#{arch.xcomp}.conf
+          --enable-builtin-zlib
+          --enable-static-drivers
           --enable-static-nifs=#{Enum.join(nifs, ",")}
         ),
           env
@@ -163,6 +195,8 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
           --with-ssl=#{openssl_target(arch)}
           --disable-dynamic-ssl-lib
           --xcomp-conf=xcomp/erl-xcomp-#{arch.xcomp}.conf
+          --enable-builtin-zlib
+          --enable-static-drivers
           --enable-static-nifs=#{Enum.join(nifs, ",")}
         ),
         env
@@ -221,12 +255,16 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
       build(target, nifs)
     end
 
-    {sims, reals} =
-      Enum.map(targets, fn target -> runtime_target(get_arch(target)) end)
-      |> Enum.split_with(fn lib -> String.contains?(lib, "simulator") end)
-
     libs =
-      (lipo(sims) ++ lipo(reals))
+      Enum.map(targets, fn target -> get_arch(target) end)
+      # we want to lipo-merge libs from the same sdk
+      |> Enum.group_by(fn arch -> arch.sdk end)
+      |> Enum.map(fn {_, archs} ->
+        # getting the names of the erlang.a
+        Enum.map(archs, &runtime_target/1)
+        # and merging them
+        |> lipo()
+      end)
       |> Enum.map(fn lib -> "-library #{lib}" end)
 
     framework = "./_build/liberlang.xcframework"
