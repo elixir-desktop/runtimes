@@ -144,7 +144,7 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
           git clean -xdf))
 
         # Ensure patched xcomp file
-        if not File.exists?("#{otp_target(arch)}/xcomp/erl-xcomp-#{arch.xcomp}.conf") do
+        if File.exists?("patch/erl-xcomp-#{arch.xcomp}.conf") do
           File.copy!(
             "patch/erl-xcomp-#{arch.xcomp}.conf",
             "#{otp_target(arch)}/xcomp/erl-xcomp-#{arch.xcomp}.conf"
@@ -153,16 +153,15 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
 
         Runtimes.run(
           ~w(
-            cd #{otp_target(arch)} &&
-
-            ./otp_build configure
-          --with-ssl=#{openssl_target(arch)}
-          --disable-dynamic-ssl-lib
-          --xcomp-conf=xcomp/erl-xcomp-#{arch.xcomp}.conf
-          --enable-builtin-zlib
-          --enable-static-drivers
-          --enable-static-nifs=#{Enum.join(nifs, ",")}
-        ),
+            cd #{otp_target(arch)} && ./otp_build configure
+              --with-ssl=#{openssl_target(arch)}
+              --disable-dynamic-ssl-lib
+              --without-termcap --without-wx --without-observer --without-debugger --without-et
+              --xcomp-conf=xcomp/erl-xcomp-#{arch.xcomp}.conf
+              --enable-builtin-zlib
+              --enable-static-drivers
+              --enable-static-nifs=#{Enum.join(nifs, ",")}
+          ),
           env
         )
 
@@ -192,12 +191,13 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
       Runtimes.run(
         ~w(
           cd #{otp_target(arch)} && ./otp_build configure
-          --with-ssl=#{openssl_target(arch)}
-          --disable-dynamic-ssl-lib
-          --xcomp-conf=xcomp/erl-xcomp-#{arch.xcomp}.conf
-          --enable-builtin-zlib
-          --enable-static-drivers
-          --enable-static-nifs=#{Enum.join(nifs, ",")}
+            --with-ssl=#{openssl_target(arch)}
+            --disable-dynamic-ssl-lib
+            --without-termcap --without-wx --without-observer --without-debugger --without-et
+            --xcomp-conf=xcomp/erl-xcomp-#{arch.xcomp}.conf
+            --enable-builtin-zlib
+            --enable-static-drivers
+            --enable-static-nifs=#{Enum.join(nifs, ",")}
         ),
         env
       )
