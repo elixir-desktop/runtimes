@@ -12,10 +12,11 @@ jobs:
       matrix:
         arch: ["arm", "arm64", "x86_64"]
     steps:
-    - run: |
-        wget https://packages.erlang-solutions.com/erlang-solutions_2.0_all.deb && sudo dpkg -i erlang-solutions_2.0_all.deb
-        sudo apt-get update
-        sudo apt-get install esl-erlang inotify-tools
+    - name: Setup elixir
+      uses: erlef/setup-beam@v1
+      with:
+        otp-version: 24.3.3
+        elixir-version: 1.13.4
 
     - uses: actions/checkout@v2
 
