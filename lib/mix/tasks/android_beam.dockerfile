@@ -21,11 +21,7 @@ RUN ARCH="android-<%= @arch.id %> -D__ANDROID_API__=<%= @arch.abi %>" ./install_
 # Fetching OTP
 COPY _build/otp otp
 
-<%= if @arch.id == "arm" do %>
-ENV LIBS -L$NDK_ROOT/lib64/clang/12.0.5/lib/linux/ /usr/local/openssl/lib/libcrypto.a -lclang_rt.builtins-arm-android
-<% else %>
 ENV LIBS /usr/local/openssl/lib/libcrypto.a
-<% end %>
 
 # We need -z global for liberlang.so because:
 # https://android-ndk.narkive.com/iNWj05IV/weak-symbol-linking-when-loading-dynamic-libraries
@@ -45,7 +41,7 @@ config = "--with-ssl=/usr/local/openssl/ --disable-dynamic-ssl-lib --without-jav
 # config = if @arch.id == "x86_64", do: "--disable-jit #{config}", else: config
 config = "--disable-jit #{config}"
 %>
-RUN ./otp_build configure <%= config %>
+RUN ./otp_build setup <%= config %> || bash -c 'cat erts/config.log && exit 1'
 RUN ./otp_build boot -a
 
 # Build run #2, now creating the arm binaries, appliying the install flags only here...
