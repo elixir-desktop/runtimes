@@ -44,6 +44,9 @@ jobs:
     name: "Build iOS runtime"
     runs-on: "macos-latest"
     steps:
+    - run: brew install git carthage coreutils
+    - uses: actions/checkout@v2
+
     - name: Setup elixir
       run: |
         git clone https://github.com/asdf-vm/asdf.git ~/.asdf
@@ -54,17 +57,17 @@ jobs:
         echo "elixir 1.13.4-otp-24" >> .tool-versions
         asdf install
 
-    - run: brew install git carthage coreutils
-    - uses: actions/checkout@v2
     - name: Build runtime
       run:  |
         . $HOME/.asdf/asdf.sh
         mix package.ios.runtime
+
     - name: Archive runtimes
       uses: actions/upload-artifact@v2
       with:
         name: iOS-runtime
         path: _build/liberlang.xcframework
+        
     - name: iOS release
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
