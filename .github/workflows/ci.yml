@@ -51,7 +51,7 @@ jobs:
         asdf plugin add erlang
         asdf plugin add elixir
         echo "erlang 24.3.3" >> .tool-versions
-        echo "elixir 1.13.4-otp24" >> .tool-versions
+        echo "elixir 1.13.4-otp-24" >> .tool-versions
         asdf install
 
     - run: brew install git carthage coreutils
