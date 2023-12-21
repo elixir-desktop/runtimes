@@ -44,7 +44,13 @@ jobs:
     name: "Build iOS runtime"
     runs-on: "macos-latest"
     steps:
-    - run: brew install git elixir carthage coreutils
+    - name: Setup elixir
+      uses: erlef/setup-beam@v1
+      with:
+        otp-version: 24.3.3
+        elixir-version: 1.13.4
+
+    - run: brew install git carthage coreutils
     - uses: actions/checkout@v2
     - name: Build runtime
       run: mix package.ios.runtime
