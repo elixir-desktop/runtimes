@@ -45,15 +45,21 @@ jobs:
     runs-on: "macos-latest"
     steps:
     - name: Setup elixir
-      uses: erlef/setup-beam@v1
-      with:
-        otp-version: 24.3.3
-        elixir-version: 1.13.4
+      run: |
+        git clone https://github.com/asdf-vm/asdf.git ~/.asdf
+        . $HOME/.asdf/asdf.sh
+        asdf plugin add erlang
+        asdf plugin add elixir
+        echo "erlang 24.3.3" >> .tool-versions
+        echo "elixir 1.13.4-otp24" >> .tool-versions
+        asdf install
 
     - run: brew install git carthage coreutils
     - uses: actions/checkout@v2
     - name: Build runtime
-      run: mix package.ios.runtime
+      run:  |
+        . $HOME/.asdf/asdf.sh
+        mix package.ios.runtime
     - name: Archive runtimes
       uses: actions/upload-artifact@v2
       with:
