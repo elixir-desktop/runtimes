@@ -27,7 +27,7 @@ For iOS builds are triggered similiary with:
 Just for reference from https://apilevels.com/, currently we're only supporting ABI >= 23 
 
 | Culumative usage | Version | API Level |
-| ------------ | --- | ------- | --------- |
+| ------------ | ------- | --------- |
 | 0% | Android 15          | (API level 35) |
 | 16.30% | Android 14          | (API level 34) |
 | 42.50% | Android 13          | (API level 33) |
