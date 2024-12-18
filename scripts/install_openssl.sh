@@ -1,6 +1,6 @@
 #!/bin/bash
-export VSN=1.1.1k
-export VSN_HASH=892a0875b9872acd04a9fde79b1f943075d5ea162415de3047c327df33fbaee5
+export VSN=1.1.1v
+export VSN_HASH=d6697e2871e77238460402e9362d47d18382b15ef9f246aba6c7bd780d38a6b0
 
 if [ -z "$OPENSSL_PREFIX" ]; then
 export PREFIX=/usr/local/openssl

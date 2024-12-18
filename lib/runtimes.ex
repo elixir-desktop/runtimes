@@ -62,11 +62,11 @@ defmodule Runtimes do
   end
 
   def otp_source() do
-    System.get_env("OTP_SOURCE", "https://github.com/diodechain/otp")
+    System.get_env("OTP_SOURCE", "https://github.com/erlang/otp")
   end
 
   def otp_tag() do
-    System.get_env("OTP_TAG", "diode/ios")
+    System.get_env("OTP_TAG", "OTP-24.3.4.14")
   end
 
   def ensure_otp() do

@@ -13,7 +13,7 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
         openssl_arch: "ios-xcrun",
         xcomp: "arm-ios",
         name: "arm-apple-ios",
-        cflags: "-fembed-bitcode -mios-version-min=7.0.0 -fno-common -Os -D__IOS__=yes"
+        cflags: "-mios-version-min=7.0.0 -fno-common -Os -D__IOS__=yes"
       },
       "ios-arm64" => %{
         arch: "arm64",
@@ -22,7 +22,7 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
         openssl_arch: "ios64-xcrun",
         xcomp: "arm64-ios",
         name: "aarch64-apple-ios",
-        cflags: "-fembed-bitcode -mios-version-min=7.0.0 -fno-common -Os -D__IOS__=yes"
+        cflags: "-mios-version-min=7.0.0 -fno-common -Os -D__IOS__=yes"
       },
       "iossimulator-x86_64" => %{
         arch: "x86_64",
@@ -125,7 +125,7 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
           ~w(
           cd #{otp_target(arch)} &&
           git clean -xdf &&
-          ./otp_build configure
+          ./otp_build setup
           --with-ssl=#{openssl_target(arch)}
           --disable-dynamic-ssl-lib
           --xcomp-conf=xcomp/erl-xcomp-#{arch.xcomp}.conf
