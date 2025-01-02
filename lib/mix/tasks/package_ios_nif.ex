@@ -12,8 +12,8 @@ defmodule Mix.Tasks.Package.Ios.Nif do
     buildall(Map.keys(architectures()), nif)
   end
 
-  def elixir_target() do
-    Path.absname("_build/elixir")
+  def elixir_target(arch) do
+    Path.absname("_build/#{arch.name}/elixir")
   end
 
   def build(arch, nif) do
@@ -23,7 +23,7 @@ defmodule Mix.Tasks.Package.Ios.Nif do
     # Todo: How to sync cross-compiled erlang version and local erlang version?
     path =
       [
-        Path.join(elixir_target(), "bin"),
+        Path.join(elixir_target(arch), "bin"),
         Path.join(System.get_env("HOME"), ".mix"),
         # Path.join(otp_target(arch), "bootstrap/bin"),
         System.get_env("PATH")
@@ -31,10 +31,10 @@ defmodule Mix.Tasks.Package.Ios.Nif do
       |> Enum.join(":")
 
     # Getting an Elixir version
-    if File.exists?(Path.join(elixir_target(), "bin")) do
+    if File.exists?(Path.join(elixir_target(arch), "bin")) do
       IO.puts("Elixir already exists...")
     else
-      Runtimes.run(["scripts/install_elixir.sh", elixir_target()])
+      Runtimes.run(["scripts/install_elixir.sh", elixir_target(arch)])
       Runtimes.run("mix do local.hex --force && mix local.rebar --force", PATH: path)
     end
 
@@ -94,7 +94,7 @@ defmodule Mix.Tasks.Package.Ios.Nif do
     # Finding all .a files
     :filelib.fold_files(
       String.to_charlist(nif_dir),
-      '.+\\.a$',
+      ~c".+\\.a$",
       true,
       fn name, acc -> [List.to_string(name) | acc] end,
       []
