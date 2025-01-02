@@ -179,7 +179,7 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
       files =
         :filelib.fold_files(
           String.to_charlist(otp_target(arch)),
-          '.+\\.a$',
+          ~c".+\\.a$",
           true,
           fn name, acc ->
             name = List.to_string(name)
@@ -217,8 +217,24 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
     # targets
     # |> Enum.map(fn target -> Task.async(fn -> build(target, nifs) end) end)
     # |> Enum.map(fn task -> Task.await(task, 60_000*60*3) end)
-    for target <- targets do
-      build(target, nifs)
+    if System.get_env("PARALLEL", "") != "" do
+      for target <- targets do
+        {spawn_monitor(fn -> build(target, nifs) end), target}
+      end
+      |> Enum.each(fn {{pid, ref}, target} ->
+        receive do
+          {:DOWN, ^ref, :process, ^pid, :normal} ->
+            :ok
+
+          {:DOWN, ^ref, :process, ^pid, reason} ->
+            IO.puts("Build failed for #{target}: #{inspect(reason)}")
+            raise reason
+        end
+      end)
+    else
+      for target <- targets do
+        build(target, nifs)
+      end
     end
 
     {sims, reals} =
