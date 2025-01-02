@@ -66,7 +66,7 @@ defmodule Runtimes do
   end
 
   def otp_tag() do
-    System.get_env("OTP_TAG", "OTP-24.3.4.14")
+    System.get_env("OTP_TAG", "OTP-26.2.5.6")
   end
 
   def ensure_otp() do

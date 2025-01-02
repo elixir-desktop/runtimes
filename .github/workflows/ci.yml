@@ -1,7 +1,7 @@
 name: "CI"
 on: ["push", "pull_request"]
 env:
-  OTP_TAG: OTP-25.3.2.16
+  OTP_TAG: OTP-26.2.5.6
   OTP_SOURCE: https://github.com/erlang/otp
 
 jobs:
@@ -15,7 +15,7 @@ jobs:
     - name: Setup elixir
       uses: erlef/setup-beam@v1
       with:
-        otp-version: 25.3.2.16
+        otp-version: 26.2.5.6
         elixir-version: 1.16.3
 
     - uses: actions/checkout@v2
@@ -53,8 +53,8 @@ jobs:
         . $HOME/.asdf/asdf.sh
         asdf plugin add erlang
         asdf plugin add elixir
-        echo "erlang 25.3.2.16" >> .tool-versions
-        echo "elixir 1.16.3-otp-25" >> .tool-versions
+        echo "erlang 26.2.5.6" >> .tool-versions
+        echo "elixir 1.16.3-otp-24" >> .tool-versions
         asdf install
 
     - name: Build runtime
