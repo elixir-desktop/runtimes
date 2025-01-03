@@ -94,7 +94,8 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
     else
       Runtimes.run("scripts/install_openssl.sh",
         ARCH: arch.openssl_arch,
-        OPENSSL_PREFIX: openssl_target(arch)
+        OPENSSL_PREFIX: openssl_target(arch),
+        MAKEFLAGS: "-j10 -O"
       )
     end
 
