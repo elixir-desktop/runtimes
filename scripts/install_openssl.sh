@@ -10,18 +10,30 @@ fi
 
 if [ -z "$ARCH" ]; then
 export BUILD_DIR=_build
-export BASE_DIR=..
+#export BASE_DIR=..
 else
-export BUILD_DIR=_build/$ARCH
-export BASE_DIR=../..
+export BASE_ARCH=$(echo "$ARCH" | sed 's/ -D.*//') 
+echo "BASE_ARCH: $BASE_ARCH"
+export BUILD_DIR=_build/$BASE_ARCH
+#export BASE_DIR=../..
 fi
 
 # install openssl
 echo "Build and install openssl......"
-mkdir -p $PREFIX/ssl && \
-    mkdir -p $BUILD_DIR && \
+
+export BASE_DIR="$(pwd)"
+
+echo "PREFIX: $PREFIX"
+echo "BUILD_DIR: $BUILD_DIR"
+echo "BASE_DIR: $BASE_DIR"
+echo "ARCH: $ARCH"
+
+
+mkdir -p "$PREFIX/ssl" && \
+    mkdir -p "$BUILD_DIR" && \
     cd $BUILD_DIR && \
-    wget -nc https://www.openssl.org/source/openssl-$VSN.tar.gz && \
+      
+wget -nc https://www.openssl.org/source/openssl-$VSN.tar.gz && \
     [ "$VSN_HASH" = "$(sha256sum openssl-$VSN.tar.gz | cut -d ' ' -f1)" ] && \
     tar xzf openssl-$VSN.tar.gz && \
     cp $BASE_DIR/patch/openssl-ios.conf openssl-$VSN/Configurations/15-ios.conf && \
