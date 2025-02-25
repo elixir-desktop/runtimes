@@ -15,7 +15,7 @@ defmodule Mix.Tasks.Package.Android.Runtime2 do
         name: "arm-unknown-linux-androideabi",
         android_name: "androideabi",
         android_type: "armeabi-v7a",
-        cflags: ""
+        cflags: "--target=arm-linux-android23"
       },
       "arm64" => %{
         xcomp: "arm64-android",
@@ -27,7 +27,7 @@ defmodule Mix.Tasks.Package.Android.Runtime2 do
         name: "aarch64-unknown-linux-androideabi",
         android_name: "android",
         android_type: "arm64-v8a",
-        cflags: ""
+        cflags: "--target=aarch64-linux-android23"
       },
       "x86_64" => %{
         xcomp: "x86_64-android",
@@ -39,7 +39,7 @@ defmodule Mix.Tasks.Package.Android.Runtime2 do
         name: "x86_64-pc-linux-androideabi",
         android_name: "android",
         android_type: "x86_64",
-        cflags: ""
+        cflags: "--target=x86_64-linux-android23"
       }
     }
     |> Map.new()
@@ -326,13 +326,11 @@ defmodule Mix.Tasks.Package.Android.Runtime2 do
   end
 
   defp toolpath(bin, tool, arch) do
-    abi_name = "#{arch.cpu}-linux-#{arch.android_name}-#{tool}"
-
-    cond do
-      File.exists?(Path.join(bin, tool)) -> tool
-      File.exists?(Path.join(bin, "llvm-" <> tool)) -> "llvm-" <> tool
-      File.exists?(Path.join(bin, abi_name)) -> abi_name
-      true -> raise "Tool not found: #{abi_name}"
+    [tool, "llvm-" <> tool, "#{arch.cpu}-linux-#{arch.android_name}-#{tool}"]
+    |> Enum.find(fn name -> File.exists?(Path.join(bin, name)) end)
+    |> case do
+      nil -> raise "Tool not found: #{tool}"
+      name -> Path.absname(Path.join(bin, name))
     end
   end
 end
