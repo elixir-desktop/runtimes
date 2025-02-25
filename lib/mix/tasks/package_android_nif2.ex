@@ -43,22 +43,23 @@ defmodule Mix.Tasks.Package.Android.Nif2 do
     lflags = "-lc++"
     erts_version = Runtimes.erts_version()
 
-    env = [
-      PATH: path,
-      ERLANG_PATH:
-        Path.join(otp_target(arch), "release/#{arch.name}/erts-#{erts_version}/include"),
-      ERTS_INCLUDE_DIR:
-        Path.join(otp_target(arch), "release/#{arch.name}/erts-#{erts_version}/include"),
-      HOST: arch.name,
-      CROSSCOMPILE: "Android",
-      STATIC_ERLANG_NIF: "yes",
-      CFLAGS: cflags,
-      CXXFLAGS: cflags,
-      LDFLAGS: lflags,
-      MIX_ENV: "prod",
-      MIX_TARGET: "Android"
-    ]
-    |> ensure_ndk_home(arch)
+    env =
+      [
+        PATH: path,
+        ERLANG_PATH:
+          Path.join(otp_target(arch), "release/#{arch.name}/erts-#{erts_version}/include"),
+        ERTS_INCLUDE_DIR:
+          Path.join(otp_target(arch), "release/#{arch.name}/erts-#{erts_version}/include"),
+        HOST: arch.name,
+        CROSSCOMPILE: "Android",
+        STATIC_ERLANG_NIF: "yes",
+        CFLAGS: cflags,
+        CXXFLAGS: cflags,
+        LDFLAGS: lflags,
+        MIX_ENV: "prod",
+        MIX_TARGET: "Android"
+      ]
+      |> ensure_ndk_home(arch)
 
     # Start the builds
     nif_dir = "_build/#{arch.name}/#{nif.basename}"

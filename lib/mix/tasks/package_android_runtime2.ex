@@ -217,10 +217,12 @@ defmodule Mix.Tasks.Package.Android.Runtime2 do
 
   #  Method takes multiple ".a" archive files and extracts their ".o" contents
   # to then reassemble all of them into a single `target` ".a" archive
+  #  Method takes multiple ".a" archive files and extracts their ".o" contents
+  # to then reassemble all of them into a single `target` ".a" archive
   defp repackage_archive(files, target) do
     # Removing relative prefix so changing cwd is safe.
     files = Enum.join(files, " ")
-    Runtimes.run("ar rcs #{target} #{files}")
+    Runtimes.run("libtool -static -o #{target} #{files}")
   end
 
   defp buildall(targets, nifs) do
@@ -284,31 +286,43 @@ defmodule Mix.Tasks.Package.Android.Runtime2 do
 
   def ensure_ndk_home(env, arch) do
     env = Map.new(env)
-    ndk_home = env["ANDROID_NDK_HOME"] || System.get_env("ANDROID_NDK_HOME")
+    ndk_home = env[:ANDROID_NDK_HOME] || System.get_env("ANDROID_NDK_HOME")
 
     if ndk_home == nil do
       raise "ANDROID_NDK_HOME is not set"
     end
 
-    path = env["PATH"] || System.get_env("PATH")
+    path = env[:PATH] || System.get_env("PATH")
     bin = Path.join(ndk_home, "/toolchains/llvm/prebuilt/linux-x86_64/bin")
     ndk_abi_plat = "#{arch.android_name}#{arch.abi}"
 
-    Map.merge(env,
+    Map.merge(
+      env,
       %{
-        "PATH" => bin <> ":" <> path,
-        "NDK_ABI_PLAT" => ndk_abi_plat,
-        "CXX" => toolpath(bin, "clang++", arch),
-        "CC" => toolpath(bin, "clang", arch),
-        "AR" => toolpath(bin, "ar", arch),
-        "FC" => "",
-        "CPP" => "",
-        "LD" => toolpath(bin, "ld", arch),
-        # "LIBTOOL" => toolpath(bin, "libtool", arch),
-        "RANLIB" => toolpath(bin, "ranlib", arch)
+        PATH: bin <> ":" <> path,
+        NDK_ABI_PLAT: ndk_abi_plat,
+        CXX: toolpath(bin, "clang++", arch),
+        CC: toolpath(bin, "clang", arch),
+        AR: toolpath(bin, "ar", arch),
+        FC: "",
+        CPP: "",
+        LD: toolpath(bin, "ld", arch),
+        LIBTOOL: toolpath(bin, "libtool", arch),
+        RANLIB: toolpath(bin, "ranlib", arch),
+        STRIP: toolpath(bin, "strip", arch)
       }
     )
     |> Map.to_list()
+  end
+
+  defp toolpath(_bin, "libtool", _arch) do
+    tool = Path.absname("./stubs/bin/libtool-stub.sh")
+
+    if File.exists?(tool) do
+      tool
+    else
+      raise "Tool not found: libtool"
+    end
   end
 
   defp toolpath(bin, tool, arch) do
