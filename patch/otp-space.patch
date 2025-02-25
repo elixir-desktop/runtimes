@@ -1,0 +1,15 @@
+diff --git a/erts/emulator/Makefile.in b/erts/emulator/Makefile.in
+index 5def44d8cd..ed68fd2086 100644
+--- a/erts/emulator/Makefile.in
++++ b/erts/emulator/Makefile.in
+@@ -197,8 +197,8 @@ LIBS += $(TYPE_LIBS)
+ ORIG_LIBS:= $(LIBS)
+ 
+ comma:=,
+-space:=
+-space+=
++null:=
++space:=$(null) $(null)
+ 
+ STATIC_NIFS=@STATIC_NIFS@
+ ifneq ($(STATIC_NIFS),no)
