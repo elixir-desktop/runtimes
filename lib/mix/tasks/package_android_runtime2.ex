@@ -1,5 +1,6 @@
 defmodule Mix.Tasks.Package.Android.Runtime2 do
   import Runtimes.Android
+  import Runtimes
   alias Mix.Tasks.Package.Android.Nif2, as: Nif
   use Mix.Task
   require EEx
@@ -31,7 +32,7 @@ defmodule Mix.Tasks.Package.Android.Runtime2 do
     if File.exists?(openssl_lib(arch)) do
       IO.puts("OpenSSL (#{arch.id}) already exists...")
     else
-      Runtimes.run(
+      cmd(
         "scripts/install_openssl.sh",
         [
           ARCH: arch.openssl_arch,
@@ -48,10 +49,10 @@ defmodule Mix.Tasks.Package.Android.Runtime2 do
     else
       if !File.exists?(otp_target(arch)) do
         Runtimes.ensure_otp()
-        Runtimes.run(~w(git clone _build/otp #{otp_target(arch)}))
+        cmd(~w(git clone _build/otp #{otp_target(arch)}))
 
         if !File.exists?(Path.join(otp_target(arch), "patched")) do
-          Runtimes.run("cd #{otp_target(arch)} && git apply ../../../patch/otp-space.patch")
+          cmd("cd #{otp_target(arch)} && git apply ../../../patch/otp-space.patch")
           File.write!(Path.join(otp_target(arch), "patched"), "true")
         end
       end
@@ -71,7 +72,7 @@ defmodule Mix.Tasks.Package.Android.Runtime2 do
           "#{otp_target(arch)}/lib/crypto/priv/lib/#{arch.name}/crypto.a"
         ]
 
-        Runtimes.run(
+        cmd(
           ~w(
           cd #{otp_target(arch)} &&
           git clean -xdf &&
@@ -85,8 +86,8 @@ defmodule Mix.Tasks.Package.Android.Runtime2 do
           env
         )
 
-        Runtimes.run(~w(cd #{otp_target(arch)} && ./otp_build boot -a), env)
-        Runtimes.run(~w(cd #{otp_target(arch)} && ./otp_build release -a), env)
+        cmd(~w(cd #{otp_target(arch)} && ./otp_build boot -a), env)
+        cmd(~w(cd #{otp_target(arch)} && ./otp_build release -a), env)
       end
 
       # Second round
@@ -108,7 +109,7 @@ defmodule Mix.Tasks.Package.Android.Runtime2 do
         | extra_nifs
       ]
 
-      Runtimes.run(
+      cmd(
         ~w(
           cd #{otp_target(arch)} && ./otp_build configure
           --with-ssl=#{openssl_target(arch)}
@@ -119,8 +120,8 @@ defmodule Mix.Tasks.Package.Android.Runtime2 do
         env
       )
 
-      Runtimes.run(~w(cd #{otp_target(arch)} && ./otp_build boot -a), env)
-      Runtimes.run(~w(cd #{otp_target(arch)} && ./otp_build release -a), env)
+      cmd(~w(cd #{otp_target(arch)} && ./otp_build boot -a), env)
+      cmd(~w(cd #{otp_target(arch)} && ./otp_build release -a), env)
 
       {build_host, 0} = System.cmd("#{otp_target(arch)}/erts/autoconf/config.guess", [])
       build_host = String.trim(build_host)
@@ -194,7 +195,7 @@ defmodule Mix.Tasks.Package.Android.Runtime2 do
       File.rm_rf!(framework)
     end
 
-    Runtimes.run(
+    cmd(
       "xcodebuild -create-xcframework -output #{framework} " <>
         Enum.join(libs, " ")
     )

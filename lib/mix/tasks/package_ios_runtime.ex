@@ -1,5 +1,6 @@
 defmodule Mix.Tasks.Package.Ios.Runtime do
   import Runtimes.Ios
+  import Runtimes
   alias Mix.Tasks.Package.Ios.Nif
   use Mix.Task
   require EEx
@@ -31,7 +32,7 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
     if File.exists?(openssl_lib(arch)) do
       IO.puts("OpenSSL (#{arch.id}) already exists...")
     else
-      Runtimes.run("scripts/install_openssl.sh",
+      cmd("scripts/install_openssl.sh",
         ARCH: arch.openssl_arch,
         OPENSSL_PREFIX: openssl_target(arch),
         MAKEFLAGS: "-j10 -O"
@@ -44,7 +45,7 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
     else
       if !File.exists?(otp_target(arch)) do
         Runtimes.ensure_otp()
-        Runtimes.run(~w(git clone _build/otp #{otp_target(arch)}))
+        cmd(~w(git clone _build/otp #{otp_target(arch)}))
       end
 
       env = [
@@ -61,7 +62,7 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
         ]
 
         # First round build to generate headers and libs required to build nifs:
-        Runtimes.run(
+        cmd(
           ~w(
           cd #{otp_target(arch)} &&
           git clean -xdf &&
@@ -74,8 +75,8 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
           env
         )
 
-        Runtimes.run(~w(cd #{otp_target(arch)} && ./otp_build boot -a), env)
-        Runtimes.run(~w(cd #{otp_target(arch)} && ./otp_build release -a), env)
+        cmd(~w(cd #{otp_target(arch)} && ./otp_build boot -a), env)
+        cmd(~w(cd #{otp_target(arch)} && ./otp_build release -a), env)
       end
 
       # Second round
@@ -97,7 +98,7 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
         | extra_nifs
       ]
 
-      Runtimes.run(
+      cmd(
         ~w(
           cd #{otp_target(arch)} && ./otp_build configure
           --with-ssl=#{openssl_target(arch)}
@@ -108,8 +109,8 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
         env
       )
 
-      Runtimes.run(~w(cd #{otp_target(arch)} && ./otp_build boot -a), env)
-      Runtimes.run(~w(cd #{otp_target(arch)} && ./otp_build release -a), env)
+      cmd(~w(cd #{otp_target(arch)} && ./otp_build boot -a), env)
+      cmd(~w(cd #{otp_target(arch)} && ./otp_build release -a), env)
 
       {build_host, 0} = System.cmd("#{otp_target(arch)}/erts/autoconf/config.guess", [])
       build_host = String.trim(build_host)
@@ -183,7 +184,7 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
       File.rm_rf!(framework)
     end
 
-    Runtimes.run(
+    cmd(
       "xcodebuild -create-xcframework -output #{framework} " <>
         Enum.join(libs, " ")
     )

@@ -1,4 +1,5 @@
 defmodule Mix.Tasks.Package.Android.Nif do
+  import Runtimes
   use Mix.Task
   alias Mix.Tasks.Package.Android.Runtime
   require EEx
@@ -36,7 +37,7 @@ defmodule Mix.Tasks.Package.Android.Nif do
         Runtime.generate_nif_dockerfile(arch, nif)
       )
 
-      Runtimes.run(~w(docker run --rm
+      cmd(~w(docker run --rm
     -w /work/#{nif.basename}/ --entrypoint ./package_nif.sh #{image_name}
     #{nif.name} > #{target}))
     end

@@ -1,7 +1,7 @@
 defmodule Runtimes do
   require EEx
 
-  def run(args, env \\ []) do
+  def cmd(args, env \\ []) do
     args = if is_list(args), do: Enum.join(args, " "), else: args
 
     env =
@@ -73,7 +73,7 @@ defmodule Runtimes do
     if !File.exists?("_build/otp") do
       File.mkdir_p!("_build")
 
-      Runtimes.run(
+      cmd(
         "git clone #{Runtimes.otp_source()} _build/otp && cd _build/otp && git checkout #{Runtimes.otp_tag()}"
       )
     end

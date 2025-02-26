@@ -58,7 +58,7 @@ defmodule Runtimes.Android do
   def repackage_archive(files, target) do
     # Removing relative prefix so changing cwd is safe.
     files = Enum.join(files, " ")
-    Runtimes.run("libtool -static -o #{target} #{files}")
+    cmd("libtool -static -o #{target} #{files}")
   end
 
   # lipo joins different cpu build of the same target together
@@ -70,7 +70,7 @@ defmodule Runtimes.Android do
     x = System.unique_integer([:positive])
     tmp = "tmp/#{x}-liberlang.a"
     if File.exists?(tmp), do: File.rm!(tmp)
-    Runtimes.run("lipo -create #{Enum.join(more, " ")} -output #{tmp}")
+    cmd("lipo -create #{Enum.join(more, " ")} -output #{tmp}")
     [tmp]
   end
 

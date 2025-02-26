@@ -1,4 +1,5 @@
 defmodule Mix.Tasks.Package.Android.Runtime do
+  import Runtimes
   use Mix.Task
   require EEx
 
@@ -26,18 +27,16 @@ defmodule Mix.Tasks.Package.Android.Runtime do
       Runtimes.docker_build(image_name, file)
       File.mkdir_p!("_build/#{arch.id}")
 
-      Runtimes.run(~w(docker run --rm -w
+      cmd(~w(docker run --rm -w
         /work/otp/release/#{arch.pc}-linux-#{arch.android_name}/
         --entrypoint find #{image_name} .
         \\\( -name "*.so" -or -path "*erts-*/bin/*" \\\)
         -exec tar c "{}" + |
         tar x -C _build/#{arch.id}))
 
-      Runtimes.run(
-        ~w(find _build/#{arch.id} -name beam.smp -execdir mv beam.smp liberlang.so \\\;)
-      )
+      cmd(~w(find _build/#{arch.id} -name beam.smp -execdir mv beam.smp liberlang.so \\\;))
 
-      Runtimes.run(~w(cd _build/#{arch.id}; zip ../../#{file_name} -r .))
+      cmd(~w(cd _build/#{arch.id}; zip ../../#{file_name} -r .))
     end
   end
 

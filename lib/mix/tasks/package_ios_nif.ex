@@ -26,8 +26,8 @@ defmodule Mix.Tasks.Package.Ios.Nif do
     if File.exists?(Path.join(elixir_target(arch), "bin")) do
       IO.puts("Elixir already exists...")
     else
-      Runtimes.run(["scripts/install_elixir.sh", elixir_target(arch)])
-      Runtimes.run("mix do local.hex --force && mix local.rebar --force", PATH: path)
+      cmd(["scripts/install_elixir.sh", elixir_target(arch)])
+      cmd("mix do local.hex --force && mix local.rebar --force", PATH: path)
     end
 
     {sdkroot, 0} = System.cmd("xcrun", ["-sdk", arch.sdk, "--show-sdk-path"])
@@ -64,15 +64,15 @@ defmodule Mix.Tasks.Package.Ios.Nif do
     nif_dir = "_build/#{arch.name}/#{nif.basename}"
 
     if !File.exists?(nif_dir) do
-      Runtimes.run(~w(git clone #{nif.repo} #{nif_dir}), env)
+      cmd(~w(git clone #{nif.repo} #{nif_dir}), env)
     end
 
     if nif.tag do
-      Runtimes.run(~w(cd #{nif_dir} && git checkout #{nif.tag}), env)
+      cmd(~w(cd #{nif_dir} && git checkout #{nif.tag}), env)
     end
 
     build_nif = Path.absname("scripts/build_nif.sh")
-    Runtimes.run(~w(cd #{nif_dir} && #{build_nif}), env)
+    cmd(~w(cd #{nif_dir} && #{build_nif}), env)
 
     case static_lib_path(arch, nif) do
       nil -> raise "NIF build failed. Could not locate static lib"
