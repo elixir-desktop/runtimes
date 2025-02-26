@@ -284,16 +284,17 @@ defmodule Mix.Tasks.Package.Android.Runtime2 do
     [tmp]
   end
 
+  def ndk_home(env \\ []) do
+    env = Map.new(env)
+
+    env[:ANDROID_NDK_HOME] || System.get_env("ANDROID_NDK_HOME") ||
+      raise "ANDROID_NDK_HOME is not set"
+  end
+
   def ensure_ndk_home(env, arch) do
     env = Map.new(env)
-    ndk_home = env[:ANDROID_NDK_HOME] || System.get_env("ANDROID_NDK_HOME")
-
-    if ndk_home == nil do
-      raise "ANDROID_NDK_HOME is not set"
-    end
-
     path = env[:PATH] || System.get_env("PATH")
-    bin = Path.join(ndk_home, "/toolchains/llvm/prebuilt/linux-x86_64/bin")
+    bin = Path.join(ndk_home(env), "/toolchains/llvm/prebuilt/linux-x86_64/bin")
     ndk_abi_plat = "#{arch.android_name}#{arch.abi}"
 
     Map.merge(

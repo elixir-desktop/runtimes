@@ -39,8 +39,13 @@ defmodule Mix.Tasks.Package.Android.Nif2 do
       Runtimes.run("mix do local.hex --force && mix local.rebar --force", PATH: path)
     end
 
-    cflags = arch.cflags <> " -I#{Path.absname("stubs")}"
-    lflags = "-lc++"
+    cflags =
+      arch.cflags <>
+        " -I#{Path.absname("stubs")}"
+
+    lflags =
+      "-lc++ -L#{Path.join(Runtime.ndk_home(), "toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/#{arch.cpu}-linux-android/#{arch.abi}")}"
+
     erts_version = Runtimes.erts_version()
 
     env =
