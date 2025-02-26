@@ -11,6 +11,7 @@ defmodule Mix.Tasks.Package.Android.Runtime2 do
         id: "arm",
         abi: 23,
         cpu: "arm",
+        bin: "armv7a",
         pc: "arm-unknown",
         name: "arm-unknown-linux-androideabi",
         android_name: "androideabi",
@@ -23,6 +24,7 @@ defmodule Mix.Tasks.Package.Android.Runtime2 do
         id: "arm64",
         abi: 23,
         cpu: "aarch64",
+        bin: "aarch64",
         pc: "aarch64-unknown",
         name: "aarch64-unknown-linux-androideabi",
         android_name: "android",
@@ -35,6 +37,7 @@ defmodule Mix.Tasks.Package.Android.Runtime2 do
         id: "x86_64",
         abi: 23,
         cpu: "x86_64",
+        bin: "x86_64",
         pc: "x86_64-pc",
         name: "x86_64-pc-linux-androideabi",
         android_name: "android",
@@ -316,6 +319,16 @@ defmodule Mix.Tasks.Package.Android.Runtime2 do
     |> Map.to_list()
   end
 
+  defp toolpath(_bin, "ld", _arch) do
+    tool = Path.absname("./stubs/bin/ld-stub.sh")
+
+    if File.exists?(tool) do
+      tool
+    else
+      raise "Tool not found: ld"
+    end
+  end
+
   defp toolpath(_bin, "libtool", _arch) do
     tool = Path.absname("./stubs/bin/libtool-stub.sh")
 
@@ -327,7 +340,12 @@ defmodule Mix.Tasks.Package.Android.Runtime2 do
   end
 
   defp toolpath(bin, tool, arch) do
-    [tool, "llvm-" <> tool, "#{arch.cpu}-linux-#{arch.android_name}-#{tool}"]
+    [
+      tool,
+      "llvm-" <> tool,
+      "#{arch.cpu}-linux-#{arch.android_name}-#{tool}",
+      "#{arch.bin}-linux-#{arch.android_name}-#{tool}"
+    ]
     |> Enum.find(fn name -> File.exists?(Path.join(bin, name)) end)
     |> case do
       nil -> raise "Tool not found: #{tool}"
