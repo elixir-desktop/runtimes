@@ -1,53 +1,8 @@
 defmodule Mix.Tasks.Package.Ios.Runtime do
+  import Runtimes.Ios
   alias Mix.Tasks.Package.Ios.Nif
   use Mix.Task
   require EEx
-
-  def architectures() do
-    # Not sure if we still need arm-32 at all https://blakespot.com/ios_device_specifications_grid.html
-    %{
-      "ios" => %{
-        arch: "armv7",
-        id: "ios",
-        sdk: "iphoneos",
-        openssl_arch: "ios-xcrun",
-        xcomp: "arm-ios",
-        name: "arm-apple-ios",
-        cflags: "-mios-version-min=7.0.0 -fno-common -Os -D__IOS__=yes"
-      },
-      "ios-arm64" => %{
-        arch: "arm64",
-        id: "ios64",
-        sdk: "iphoneos",
-        openssl_arch: "ios64-xcrun",
-        xcomp: "arm64-ios",
-        name: "aarch64-apple-ios",
-        cflags: "-mios-version-min=7.0.0 -fno-common -Os -D__IOS__=yes"
-      },
-      "iossimulator-x86_64" => %{
-        arch: "x86_64",
-        id: "iossimulator",
-        sdk: "iphonesimulator",
-        openssl_arch: "iossimulator-x86_64-xcrun",
-        xcomp: "x86_64-iossimulator",
-        name: "x86_64-apple-iossimulator",
-        cflags: "-mios-simulator-version-min=7.0.0 -fno-common -Os -D__IOS__=yes"
-      },
-      "iossimulator-arm64" => %{
-        arch: "arm64",
-        id: "iossimulator",
-        sdk: "iphonesimulator",
-        openssl_arch: "iossimulator-arm64-xcrun",
-        xcomp: "arm64-iossimulator",
-        name: "aarch64-apple-iossimulator",
-        cflags: "-mios-simulator-version-min=7.0.0 -fno-common -Os -D__IOS__=yes"
-      }
-    }
-  end
-
-  def get_arch(arch) do
-    Map.fetch!(architectures(), arch)
-  end
 
   def run(["with_diode_nifs"]) do
     nifs = [
@@ -66,22 +21,6 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
     IO.puts("Validating nifs...")
     Enum.each(nifs, fn nif -> Runtimes.get_nif(nif) end)
     buildall(Map.keys(architectures()), nifs)
-  end
-
-  def openssl_target(arch) do
-    Path.absname("_build/#{arch.name}/openssl")
-  end
-
-  def openssl_lib(arch) do
-    Path.join(openssl_target(arch), "lib/libcrypto.a")
-  end
-
-  def otp_target(arch) do
-    Path.absname("_build/#{arch.name}/otp")
-  end
-
-  def runtime_target(arch) do
-    "_build/#{arch.name}/liberlang.a"
   end
 
   def build(archid, extra_nifs) do
@@ -144,11 +83,11 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
       # so this requires two rounds...
       extra_nifs =
         Enum.map(extra_nifs, fn nif ->
-          if Nif.static_lib_path(arch, Runtimes.get_nif(nif)) == nil do
+          if static_lib_path(arch, Runtimes.get_nif(nif)) == nil do
             Nif.build(archid, nif)
           end
 
-          Nif.static_lib_path(arch, Runtimes.get_nif(nif))
+          static_lib_path(arch, Runtimes.get_nif(nif))
           |> Path.absname()
         end)
 
@@ -204,14 +143,6 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
     end
   end
 
-  #  Method takes multiple ".a" archive files and extracts their ".o" contents
-  # to then reassemble all of them into a single `target` ".a" archive
-  defp repackage_archive(files, target) do
-    # Removing relative prefix so changing cwd is safe.
-    files = Enum.join(files, " ")
-    Runtimes.run("libtool -static -o #{target} #{files}")
-  end
-
   defp buildall(targets, nifs) do
     Runtimes.ensure_otp()
 
@@ -256,18 +187,5 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
       "xcodebuild -create-xcframework -output #{framework} " <>
         Enum.join(libs, " ")
     )
-  end
-
-  # lipo joins different cpu build of the same target together
-  defp lipo([]), do: []
-  defp lipo([one]), do: [one]
-
-  defp lipo(more) do
-    File.mkdir_p!("tmp")
-    x = System.unique_integer([:positive])
-    tmp = "tmp/#{x}-liberlang.a"
-    if File.exists?(tmp), do: File.rm!(tmp)
-    Runtimes.run("lipo -create #{Enum.join(more, " ")} -output #{tmp}")
-    [tmp]
   end
 end
