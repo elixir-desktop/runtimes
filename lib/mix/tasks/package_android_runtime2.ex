@@ -5,6 +5,24 @@ defmodule Mix.Tasks.Package.Android.Runtime2 do
   use Mix.Task
   require EEx
 
+  def run(["env" | arch]) do
+    archs = Map.keys(architectures())
+    arch = List.first(arch)
+
+    if !Enum.member?(archs, arch) do
+      raise "Architecture '#{arch}' is invalid. Possible values: #{inspect(archs)}"
+    end
+
+    File.write!("nif_env.sh", "#!/bin/bash\n")
+    nif_env(architectures()[arch])
+    |> Enum.sort()
+    |> Enum.each(fn {key, value} ->
+      File.write!("nif_env.sh", "export #{key}=\"#{value}\"\n", [:append])
+    end)
+
+    Mix.shell().info("Environment has been written to nif_env.sh")
+  end
+
   def run(["with_diode_nifs"]) do
     nifs = [
       "https://github.com/diodechain/esqlite.git",

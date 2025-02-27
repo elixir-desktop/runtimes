@@ -120,27 +120,23 @@ defmodule Runtimes.Android do
     |> Map.to_list()
   end
 
-  def toolpath(_bin, "ld", _arch) do
-    tool = Path.absname("./stubs/bin/ld-stub.sh")
-
-    if File.exists?(tool) do
-      tool
-    else
-      raise "Tool not found: ld"
-    end
-  end
-
-  def toolpath(_bin, "libtool", _arch) do
-    tool = Path.absname("./stubs/bin/libtool-stub.sh")
-
-    if File.exists?(tool) do
-      tool
-    else
-      raise "Tool not found: libtool"
-    end
-  end
-
   def toolpath(bin, tool, arch) do
+    stub = Path.absname("./stubs/bin/#{tool}-stub.sh")
+    real = real_toolpath(bin, tool, arch)
+
+    if File.exists?(stub) do
+      content = File.read!(stub)
+      stub = Path.join(stub_target(arch), tool)
+      File.mkdir_p!(stub_target(arch))
+      File.write!(stub, String.replace(content, "%TOOL%", real || ""))
+      File.chmod!(stub, 0o755)
+      stub
+    else
+      real || raise "Tool not found: #{tool} in #{bin}"
+    end
+  end
+
+  def real_toolpath(bin, tool, arch) do
     [
       tool,
       "llvm-" <> tool,
@@ -149,7 +145,7 @@ defmodule Runtimes.Android do
     ]
     |> Enum.find(fn name -> File.exists?(Path.join(bin, name)) end)
     |> case do
-      nil -> raise "Tool not found: #{tool}"
+      nil -> nil
       name -> Path.absname(Path.join(bin, name))
     end
   end
@@ -158,6 +154,7 @@ defmodule Runtimes.Android do
     path =
       [
         Path.join(elixir_target(arch), "bin"),
+        stub_target(arch),
         Path.join(System.get_env("HOME"), ".mix"),
         # Path.join(otp_target(arch), "bootstrap/bin"),
         System.get_env("PATH")

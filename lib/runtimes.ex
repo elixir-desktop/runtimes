@@ -104,6 +104,11 @@ defmodule Runtimes do
     Path.absname("_build/#{arch.name}/elixir")
   end
 
+  def stub_target(arch) do
+    Path.absname("_build/#{arch.name}/stubs")
+  end
+
+
   def static_lib_path(arch, nif) do
     nif_dir = "_build/#{arch.name}/#{nif.basename}"
 
