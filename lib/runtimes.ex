@@ -143,9 +143,9 @@ defmodule Runtimes do
   # to then reassemble all of them into a single `target` ".a" archive
   #  Method takes multiple ".a" archive files and extracts their ".o" contents
   # to then reassemble all of them into a single `target` ".a" archive
-  def repackage_archive(libtool, files, target) do
+  def repackage_archive(libtool, files, target, env \\ []) do
     # Removing relative prefix so changing cwd is safe.
     files = Enum.join(files, " ")
-    cmd("#{libtool} -static -o #{target} #{files}")
+    cmd("#{libtool} -static -o #{target} #{files}", env)
   end
 end

@@ -171,7 +171,7 @@ defmodule Mix.Tasks.Package.Android.Runtime2 do
       files = files ++ [openssl_lib(arch) | nifs]
 
       # Creating a new archive
-      repackage_archive(toolpath("libtool", arch), files, runtime_target(arch))
+      repackage_archive(toolpath("libtool", arch), files, runtime_target(arch), env)
     end
   end
 
