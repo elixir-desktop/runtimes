@@ -47,14 +47,6 @@ defmodule Runtimes.Ios do
     Map.fetch!(architectures(), arch)
   end
 
-  #  Method takes multiple ".a" archive files and extracts their ".o" contents
-  # to then reassemble all of them into a single `target` ".a" archive
-  def repackage_archive(files, target) do
-    # Removing relative prefix so changing cwd is safe.
-    files = Enum.join(files, " ")
-    cmd("libtool -static -o #{target} #{files}")
-  end
-
   # lipo joins different cpu build of the same target together
   def lipo([]), do: []
   def lipo([one]), do: [one]

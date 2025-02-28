@@ -108,7 +108,6 @@ defmodule Runtimes do
     Path.absname("_build/#{arch.name}/stubs")
   end
 
-
   def static_lib_path(arch, nif) do
     nif_dir = "_build/#{arch.name}/#{nif.basename}"
 
@@ -138,5 +137,15 @@ defmodule Runtimes do
 
   def runtime_target(arch) do
     "_build/#{arch.name}/liberlang.a"
+  end
+
+  #  Method takes multiple ".a" archive files and extracts their ".o" contents
+  # to then reassemble all of them into a single `target` ".a" archive
+  #  Method takes multiple ".a" archive files and extracts their ".o" contents
+  # to then reassemble all of them into a single `target` ".a" archive
+  def repackage_archive(libtool, files, target) do
+    # Removing relative prefix so changing cwd is safe.
+    files = Enum.join(files, " ")
+    cmd("#{libtool} -static -o #{target} #{files}")
   end
 end

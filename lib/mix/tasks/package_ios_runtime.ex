@@ -140,7 +140,7 @@ defmodule Mix.Tasks.Package.Ios.Runtime do
       files = files ++ [openssl_lib(arch) | nifs]
 
       # Creating a new archive
-      repackage_archive(files, runtime_target(arch))
+      repackage_archive("libtool", files, runtime_target(arch))
     end
   end
 

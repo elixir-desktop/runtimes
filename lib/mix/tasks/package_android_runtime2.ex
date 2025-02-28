@@ -14,6 +14,7 @@ defmodule Mix.Tasks.Package.Android.Runtime2 do
     end
 
     File.write!("nif_env.sh", "#!/bin/bash\n")
+
     nif_env(architectures()[arch])
     |> Enum.sort()
     |> Enum.each(fn {key, value} ->
@@ -132,6 +133,7 @@ defmodule Mix.Tasks.Package.Android.Runtime2 do
           cd #{otp_target(arch)} && ./otp_build configure
           --with-ssl=#{openssl_target(arch)}
           --disable-dynamic-ssl-lib
+          --without-javac --without-odbc --without-wx --without-debugger --without-observer --without-cdv --without-et
           --xcomp-conf=xcomp/erl-xcomp-#{arch.xcomp}.conf
           --enable-static-nifs=#{Enum.join(nifs, ",")}
         ) ++ ["LDFLAGS=\"-z global\""],
@@ -169,7 +171,7 @@ defmodule Mix.Tasks.Package.Android.Runtime2 do
       files = files ++ [openssl_lib(arch) | nifs]
 
       # Creating a new archive
-      repackage_archive(files, runtime_target(arch))
+      repackage_archive(toolpath("libtool", arch), files, runtime_target(arch))
     end
   end
 
@@ -199,23 +201,16 @@ defmodule Mix.Tasks.Package.Android.Runtime2 do
       end
     end
 
-    {sims, reals} =
-      Enum.map(targets, fn target -> runtime_target(get_arch(target)) end)
-      |> Enum.split_with(fn lib -> String.contains?(lib, "simulator") end)
+    files_for_zip =
+      Enum.map(targets, fn target ->
+        arch = get_arch(target)
+        {arch.android_type, runtime_target(arch)}
+      end)
+      |> Enum.map(fn {android_type, path} ->
+        {~c"lib/#{android_type}/liberlang.a", File.read!(path)}
+      end)
 
-    libs =
-      (lipo(sims) ++ lipo(reals))
-      |> Enum.map(fn lib -> "-library #{lib}" end)
-
-    framework = "./_build/liberlang.xcframework"
-
-    if File.exists?(framework) do
-      File.rm_rf!(framework)
-    end
-
-    cmd(
-      "xcodebuild -create-xcframework -output #{framework} " <>
-        Enum.join(libs, " ")
-    )
+    :ok = :zip.create(~c"runtime.zip", files_for_zip)
+    Mix.shell().info("Created runtime.zip with libraries for targets: #{inspect(targets)}")
   end
 end
