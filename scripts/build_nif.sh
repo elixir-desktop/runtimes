@@ -1,3 +1,4 @@
+build_nif.sh
 #!/bin/bash
 
 # ensure there is rebar3 in path
@@ -13,7 +14,7 @@ if [ -f "Makefile" ]; then
 fi
 
 if [ -f "rebar.config" ]; then
-    exec /root/.mix/rebar3 compile
+    ERL_FLAGS="-ssl verify verify_none" exec ~/.mix/rebar3 compile
 fi
 
 echo "Could not identify how to build this nif"
