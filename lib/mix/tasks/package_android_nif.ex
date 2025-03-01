@@ -1,53 +1,49 @@
 defmodule Mix.Tasks.Package.Android.Nif do
+  import Runtimes.Android
   import Runtimes
   use Mix.Task
-  alias Mix.Tasks.Package.Android.Runtime
   require EEx
 
-  def run([]) do
-    for nif <- Runtimes.default_nifs() do
-      for arch <- Runtime.default_archs() do
-        build(arch, Runtimes.get_nif(nif))
-      end
-    end
+  def run([nif]) do
+    buildall(Map.keys(architectures()), nif)
   end
 
-  def run(args) do
-    {git, _tag} =
-      case args do
-        [] -> raise "Need git url parameter"
-        [git] -> {git, nil}
-        [git, tag] -> {git, tag}
-      end
+  def build(arch, nif) do
+    nif = get_nif(nif)
+    arch = get_arch(arch)
+    env = nif_env(arch)
 
-    build("arm64", Runtimes.get_nif(git))
-  end
-
-  defp build(arch, nif) do
-    type = Runtime.get_arch(arch).android_type
-    target = "_build/#{type}-nif-#{nif.name}.zip"
-
-    if exists?(target) do
-      :ok
+    # Getting an Elixir version
+    if File.exists?(Path.join(elixir_target(arch), "bin")) do
+      IO.puts("Elixir already exists...")
     else
-      image_name = "#{nif.name}-#{arch}"
+      cmd(["scripts/install_elixir.sh", elixir_target(arch)])
+      cmd("mix do local.hex --force && mix local.rebar --force", PATH: env[:PATH])
+    end
 
-      Runtimes.docker_build(
-        image_name,
-        Runtime.generate_nif_dockerfile(arch, nif)
-      )
+    # Start the builds
+    nif_dir = "_build/#{arch.name}/#{nif.basename}"
 
-      cmd(~w(docker run --rm
-    -w /work/#{nif.basename}/ --entrypoint ./package_nif.sh #{image_name}
-    #{nif.name} > #{target}))
+    if !File.exists?(nif_dir) do
+      cmd(~w(git clone #{nif.repo} #{nif_dir}), env)
+    end
+
+    if nif.tag do
+      cmd(~w(cd #{nif_dir} && git checkout #{nif.tag}), env)
+    end
+
+    build_nif = Path.absname("scripts/build_nif.sh")
+    cmd(~w(cd #{nif_dir} && #{build_nif}), env)
+
+    case static_lib_path(arch, nif) do
+      nil -> raise "NIF build failed. Could not locate static lib"
+      lib -> lib
     end
   end
 
-  def exists?(file) do
-    case File.stat(file) do
-      {:error, _} -> false
-      {:ok, %File.Stat{size: 0}} -> false
-      _ -> true
+  defp buildall(targets, nif) do
+    for target <- targets do
+      build(target, nif)
     end
   end
 end
