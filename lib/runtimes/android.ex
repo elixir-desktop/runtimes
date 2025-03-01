@@ -15,7 +15,7 @@ defmodule Runtimes.Android do
         name: "arm-unknown-linux-androideabi",
         android_name: "androideabi",
         android_type: "armeabi-v7a",
-        cflags: "--target=arm-linux-android34 -march=armv7-a -mfpu=neon"
+        cflags: "--target=arm-linux-android34 -march=armv7-a -mfpu=neon -fPIC"
       },
       "arm64" => %{
         xcomp: "arm64-android",
@@ -25,10 +25,10 @@ defmodule Runtimes.Android do
         cpu: "aarch64",
         bin: "aarch64",
         pc: "aarch64-unknown",
-        name: "aarch64-unknown-linux-androideabi",
+        name: "aarch64-unknown-linux-android",
         android_name: "android",
         android_type: "arm64-v8a",
-        cflags: "--target=aarch64-linux-android34 -Os"
+        cflags: "--target=aarch64-linux-android34 -Os -fPIC"
       },
       "x86_64" => %{
         xcomp: "x86_64-android",
@@ -38,10 +38,10 @@ defmodule Runtimes.Android do
         cpu: "x86_64",
         bin: "x86_64",
         pc: "x86_64-pc",
-        name: "x86_64-pc-linux-androideabi",
+        name: "x86_64-pc-linux-android",
         android_name: "android",
         android_type: "x86_64",
-        cflags: "--target=x86_64-linux-android34 -Os"
+        cflags: "--target=x86_64-linux-android34 -Os -fPIC"
       }
     }
     |> Map.new()

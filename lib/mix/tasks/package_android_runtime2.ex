@@ -210,7 +210,7 @@ defmodule Mix.Tasks.Package.Android.Runtime2 do
         {~c"lib/#{android_type}/liberlang.a", File.read!(path)}
       end)
 
-    :ok = :zip.create(~c"runtime.zip", files_for_zip)
-    Mix.shell().info("Created runtime.zip with libraries for targets: #{inspect(targets)}")
+    {:ok, _} = :zip.create(~c"_build/android-runtime.zip", files_for_zip)
+    Mix.shell().info("Created android-runtime.zip with libraries for targets: #{inspect(targets)}")
   end
 end
