@@ -1,6 +1,7 @@
 defmodule Runtimes.Android do
   require EEx
   import Runtimes
+  @android_abi_version 26
 
   def architectures() do
     %{
@@ -8,40 +9,40 @@ defmodule Runtimes.Android do
         xcomp: "arm-android",
         openssl_arch: "android-arm",
         id: "arm",
-        abi: 34,
+        abi: @android_abi_version,
         cpu: "arm",
         bin: "armv7a",
         pc: "arm-unknown",
         name: "arm-unknown-linux-androideabi",
         android_name: "androideabi",
         android_type: "armeabi-v7a",
-        cflags: "--target=arm-linux-android34 -march=armv7-a -mfpu=neon"
+        cflags: "--target=arm-linux-android#{@android_abi_version} -march=armv7-a -mfpu=neon"
       },
       "arm64" => %{
         xcomp: "arm64-android",
         openssl_arch: "android-arm64",
         id: "arm64",
-        abi: 34,
+        abi: @android_abi_version,
         cpu: "aarch64",
         bin: "aarch64",
         pc: "aarch64-unknown",
         name: "aarch64-unknown-linux-android",
         android_name: "android",
         android_type: "arm64-v8a",
-        cflags: "--target=aarch64-linux-android34"
+        cflags: "--target=aarch64-linux-android#{@android_abi_version}"
       },
       "x86_64" => %{
         xcomp: "x86_64-android",
         openssl_arch: "android-x86_64",
         id: "x86_64",
-        abi: 34,
+        abi: @android_abi_version,
         cpu: "x86_64",
         bin: "x86_64",
         pc: "x86_64-pc",
         name: "x86_64-pc-linux-android",
         android_name: "android",
         android_type: "x86_64",
-        cflags: "--target=x86_64-linux-android34"
+        cflags: "--target=x86_64-linux-android#{@android_abi_version}"
       }
     }
     |> Map.new()

@@ -102,7 +102,7 @@ defmodule Mix.Tasks.Package.Android.Runtime do
           --without-javac --without-odbc --without-wx --without-debugger --without-observer --without-cdv --without-et
           --xcomp-conf=xcomp/erl-xcomp-#{arch.xcomp}.conf
           --enable-static-nifs=#{Enum.join(nifs, ",")}
-        ),
+        ) ++ ["CFLAGS=\"-Os -fPIC\""],
           env
         )
 
@@ -138,7 +138,7 @@ defmodule Mix.Tasks.Package.Android.Runtime do
           --without-javac --without-odbc --without-wx --without-debugger --without-observer --without-cdv --without-et
           --xcomp-conf=xcomp/erl-xcomp-#{arch.xcomp}.conf
           --enable-static-nifs=#{Enum.join(nifs, ",")}
-        ),
+        ) ++ ["CFLAGS=\"-Os -fPIC\""],
         env
       )
 
