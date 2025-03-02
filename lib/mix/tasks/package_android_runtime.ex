@@ -98,10 +98,11 @@ defmodule Mix.Tasks.Package.Android.Runtime do
           ./otp_build setup
           --with-ssl=#{openssl_target(arch)}
           --disable-dynamic-ssl-lib
+          --enable-builtin-zlib
           --without-javac --without-odbc --without-wx --without-debugger --without-observer --without-cdv --without-et
           --xcomp-conf=xcomp/erl-xcomp-#{arch.xcomp}.conf
           --enable-static-nifs=#{Enum.join(nifs, ",")}
-        ) ++ ["LDFLAGS=\"-z global\""],
+        ),
           env
         )
 
@@ -133,10 +134,11 @@ defmodule Mix.Tasks.Package.Android.Runtime do
           cd #{otp_target(arch)} && ./otp_build configure
           --with-ssl=#{openssl_target(arch)}
           --disable-dynamic-ssl-lib
+          --enable-builtin-zlib
           --without-javac --without-odbc --without-wx --without-debugger --without-observer --without-cdv --without-et
           --xcomp-conf=xcomp/erl-xcomp-#{arch.xcomp}.conf
           --enable-static-nifs=#{Enum.join(nifs, ",")}
-        ) ++ ["LDFLAGS=\"-z global\""],
+        ),
         env
       )
 
@@ -207,7 +209,7 @@ defmodule Mix.Tasks.Package.Android.Runtime do
         {arch.android_type, runtime_target(arch)}
       end)
       |> Enum.map(fn {android_type, path} ->
-        {~c"lib/#{android_type}/liberlang.a", File.read!(path)}
+        {~c"#{android_type}/liberlang.a", File.read!(path)}
       end)
 
     {:ok, _} = :zip.create(~c"_build/android-runtime.zip", files_for_zip)

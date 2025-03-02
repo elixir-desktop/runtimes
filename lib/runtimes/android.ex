@@ -15,7 +15,7 @@ defmodule Runtimes.Android do
         name: "arm-unknown-linux-androideabi",
         android_name: "androideabi",
         android_type: "armeabi-v7a",
-        cflags: "--target=arm-linux-android34 -march=armv7-a -mfpu=neon -fPIC"
+        cflags: "--target=arm-linux-android34 -march=armv7-a -mfpu=neon"
       },
       "arm64" => %{
         xcomp: "arm64-android",
@@ -28,7 +28,7 @@ defmodule Runtimes.Android do
         name: "aarch64-unknown-linux-android",
         android_name: "android",
         android_type: "arm64-v8a",
-        cflags: "--target=aarch64-linux-android34 -Os -fPIC"
+        cflags: "--target=aarch64-linux-android34"
       },
       "x86_64" => %{
         xcomp: "x86_64-android",
@@ -41,7 +41,7 @@ defmodule Runtimes.Android do
         name: "x86_64-pc-linux-android",
         android_name: "android",
         android_type: "x86_64",
-        cflags: "--target=x86_64-linux-android34 -Os -fPIC"
+        cflags: "--target=x86_64-linux-android34"
       }
     }
     |> Map.new()
@@ -93,6 +93,9 @@ defmodule Runtimes.Android do
     path = env[:PATH] || System.get_env("PATH")
     ndk_abi_plat = "#{arch.android_name}#{arch.abi}"
 
+    cflags = (env[:CFLAGS] || "") <> "-Os -fPIC"
+    cxxflags = (env[:CXXFLAGS] || "") <> "-Os -fPIC"
+
     Map.merge(
       env,
       %{
@@ -100,7 +103,9 @@ defmodule Runtimes.Android do
         PATH: bin_path() <> ":" <> path,
         NDK_ABI_PLAT: ndk_abi_plat,
         CXX: toolpath("clang++", arch),
+        CXXFLAGS: cxxflags,
         CC: toolpath("clang", arch),
+        CFLAGS: cflags,
         AR: toolpath("ar", arch),
         FC: "",
         CPP: "",
