@@ -18,7 +18,7 @@ jobs:
         otp-version: 26.2.5.6
         elixir-version: 1.16.3
 
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     - run: |
         scripts/install_elixir.sh "$HOME/elixir"
@@ -28,9 +28,8 @@ jobs:
       run: |
         mix deps.get
         ARCH=${{ matrix.arch }} mix package.android.runtime
-        ARCH=${{ matrix.arch }} mix package.android.nif
     - name: Archive Android runtimes
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.arch }}-runtime
         path: _build/*.zip
@@ -45,7 +44,7 @@ jobs:
     runs-on: "macos-latest"
     steps:
     - run: brew install git carthage coreutils
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     - name: Setup elixir
       run: |
@@ -63,7 +62,7 @@ jobs:
         mix package.ios.runtime
 
     - name: Archive runtimes
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: iOS-runtime
         path: _build/liberlang.xcframework
