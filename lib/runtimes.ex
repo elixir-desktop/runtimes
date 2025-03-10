@@ -1,7 +1,7 @@
 defmodule Runtimes do
   require EEx
 
-  def run(args, env \\ []) do
+  def cmd(args, env \\ []) do
     args = if is_list(args), do: Enum.join(args, " "), else: args
 
     env =
@@ -73,7 +73,7 @@ defmodule Runtimes do
     if !File.exists?("_build/otp") do
       File.mkdir_p!("_build")
 
-      Runtimes.run(
+      cmd(
         "git clone #{Runtimes.otp_source()} _build/otp && cd _build/otp && git checkout #{Runtimes.otp_tag()}"
       )
     end
@@ -84,5 +84,68 @@ defmodule Runtimes do
     content = File.read!("_build/otp/erts/vsn.mk")
     [[_, vsn]] = Regex.scan(~r/VSN *= *([0-9\.]+)/, content)
     vsn
+  end
+
+  def install_program() do
+    case :os.type() do
+      {:unix, :linux} -> "/usr/bin/install -c -s --strip-program=llvm-strip"
+      {:unix, :darwin} -> "/usr/bin/install -c"
+    end
+  end
+
+  def host() do
+    case :os.type() do
+      {:unix, :linux} -> "linux-x86_64"
+      {:unix, :darwin} -> "darwin-x86_64"
+    end
+  end
+
+  def elixir_target(arch) do
+    Path.absname("_build/#{arch.name}/elixir")
+  end
+
+  def stub_target(arch) do
+    Path.absname("_build/#{arch.name}/stubs")
+  end
+
+  def static_lib_path(arch, nif) do
+    nif_dir = "_build/#{arch.name}/#{nif.basename}"
+
+    # Finding all .a files
+    :filelib.fold_files(
+      String.to_charlist(nif_dir),
+      ~c".+\\.a$",
+      true,
+      fn name, acc -> [List.to_string(name) | acc] end,
+      []
+    )
+    |> Enum.filter(fn path -> String.contains?(path, "priv") end)
+    |> List.first()
+  end
+
+  def openssl_target(arch) do
+    Path.absname("_build/#{arch.name}/openssl")
+  end
+
+  def openssl_lib(arch) do
+    Path.join(openssl_target(arch), "lib/libcrypto.a")
+  end
+
+  def otp_target(arch) do
+    Path.absname("_build/#{arch.name}/otp")
+  end
+
+  def runtime_target(arch) do
+    "_build/#{arch.name}/liberlang.a"
+  end
+
+  #  Method takes multiple ".a" archive files and extracts their ".o" contents
+  # to then reassemble all of them into a single `target` ".a" archive
+  #  Method takes multiple ".a" archive files and extracts their ".o" contents
+  # to then reassemble all of them into a single `target` ".a" archive
+  def repackage_archive(libtool, files, target, env \\ []) do
+    # Removing relative prefix so changing cwd is safe.
+    files = Enum.join(files, " ")
+    cmd("#{libtool} -static -o #{target} #{files}", env)
   end
 end

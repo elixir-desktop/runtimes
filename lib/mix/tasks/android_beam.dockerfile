@@ -37,9 +37,6 @@ WORKDIR /work/otp
 # Build run #1, building the x86 based cross compiler which will generate the .beam files
 <% 
 config = "--with-ssl=/usr/local/openssl/ --disable-dynamic-ssl-lib --without-javac --without-odbc --without-wx --without-debugger --without-observer --without-cdv --without-et --xcomp-conf=xcomp/erl-xcomp-#{@arch.id}-android.conf"
-# Disabled jit for arm and x86_64 until https://github.com/erlang/otp/issues/4950 is fixed
-# config = if @arch.id == "x86_64", do: "--disable-jit #{config}", else: config
-config = "--disable-jit #{config}"
 %>
 RUN ./otp_build setup <%= config %> || bash -c 'cat erts/config.log && exit 1'
 RUN ./otp_build boot -a
